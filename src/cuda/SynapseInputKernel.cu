@@ -1,8 +1,8 @@
 // SynapseInputKernel.cu — Fixed implementation file
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-#include "GPUNeuralStructures.h"
-#include "SynapseInputKernel.cuh"
+#include "../../include/NeuroGen/GPUNeuralStructures.h"
+#include "../../include/NeuroGen/cuda/SynapseInputKernel.cuh"
 
 __global__ void applySynapticCurrents(const GPUSynapse* synapses, 
                                      int num_synapses, 

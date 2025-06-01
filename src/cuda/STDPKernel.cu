@@ -1,7 +1,7 @@
 // STDPKernel.cu - Implementation file
-#include "STDPKernel.cuh"
-#include "GPUNeuralStructures.h"
-#include "GridBlockUtils.cuh"
+#include "../../include/NeuroGen/cuda/STDPKernel.cuh"
+#include "../../include/NeuroGen/GPUNeuralStructures.h"
+#include "../../include/NeuroGen/cuda/GridBlockUtils.cuh"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 

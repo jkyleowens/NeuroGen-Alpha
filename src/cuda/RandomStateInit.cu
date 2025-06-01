@@ -1,5 +1,5 @@
 // RandomStateInit.cu - Kernel implementation only
-#include "RandomStateInit.cuh"
+#include "../../include/NeuroGen/cuda/RandomStateInit.cuh"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <curand_kernel.h>

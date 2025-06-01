@@ -1,9 +1,9 @@
-#include "NetworkCUDA.cuh"
-#include "CudaUtils.cuh"
-#include "NetworkConfig.h"
-#include "GPUNeuralStructures.h"
-#include "STDPKernel.cuh"
-#include "KernelLaunchWrappers.cuh"
+#include "../../include/NeuroGen/cuda/NetworkCUDA.cuh"
+#include "../../include/NeuroGen/cuda/CudaUtils.cuh"
+#include "../../include/NeuroGen/NetworkConfig.h"
+#include "../../include/NeuroGen/GPUNeuralStructures.h"
+#include "../../include/NeuroGen/cuda/STDPKernel.cuh"
+#include "../../include/NeuroGen/cuda/KernelLaunchWrappers.cuh"
 #include <iostream>
 #include <vector>
 #include <random>
@@ -121,7 +121,7 @@ void initializeNetwork() {
     
     // Generate improved network topology
     std::vector<GPUSynapse> host_synapses;
-    createNetworkTopology(host_synapses, gen);
+    NetworkCUDAInternal::createNetworkTopology(host_synapses, gen);
     
     total_synapses = host_synapses.size();
     std::cout << "[CUDA] Created " << total_synapses << " synapses" << std::endl;
@@ -144,6 +144,7 @@ void initializeNetwork() {
 }
 
 // Enhanced network topology creation
+namespace NetworkCUDAInternal {
 void createNetworkTopology(std::vector<GPUSynapse>& synapses, std::mt19937& gen) {
     std::uniform_real_distribution<float> weight_dist(0.0f, g_config.weight_init_std);
     std::uniform_real_distribution<float> delay_dist(g_config.delay_min, g_config.delay_max);
@@ -272,7 +273,7 @@ std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_sig
     safeCudaMemcpy(raw_output.data(), d_output_buffer, g_config.output_size, cudaMemcpyDeviceToHost);
     
     // Apply softmax for decision probabilities
-    return applySoftmax(raw_output);
+    return NetworkCUDAInternal::applySoftmax(raw_output);
 }
 
 // Improved softmax with numerical stability
@@ -299,8 +300,8 @@ std::vector<float> applySoftmax(const std::vector<float>& input) {
     return output;
 }
 
-// Enhanced STDP with better reward modulation
-void updateSynapticWeightsCUDA(float reward_signal) {
+// Network statistics computation
+void updateNetworkStatistics() {
     if (total_synapses == 0) return;
     
     // Adaptive STDP parameters based on reward
@@ -318,12 +319,12 @@ void updateSynapticWeightsCUDA(float reward_signal) {
     // Homeostatic mechanisms every 100 updates
     static int update_counter = 0;
     if (++update_counter % 100 == 0 && g_config.homeostatic_strength > 0) {
-        applyHomeostaticScaling();
+        NetworkCUDAInternal::applyHomeostaticScaling();
     }
     
     // Update statistics for monitoring
     if (g_config.enable_monitoring && update_counter % g_config.monitoring_interval == 0) {
-        updateNetworkStatistics();
+        NetworkCUDAInternal::updateNetworkStatistics();
     }
     
     g_stats.update_count = update_counter;
@@ -359,110 +360,215 @@ void applyHomeostaticScaling() {
     // Simple homeostatic scaling kernel (would need implementation)
     // This maintains network stability over long training periods
 }
+} // namespace NetworkCUDAInternal
 
-// Enhanced cleanup with proper error checking
-void cleanupNetwork() {
-    std::cout << "[CUDA] Cleaning up network resources..." << std::endl;
-    
-    if (d_neurons) { cudaFree(d_neurons); d_neurons = nullptr; }
-    if (d_synapses) { cudaFree(d_synapses); d_synapses = nullptr; }
-    if (d_input_buffer) { cudaFree(d_input_buffer); d_input_buffer = nullptr; }
-    if (d_output_buffer) { cudaFree(d_output_buffer); d_output_buffer = nullptr; }
-    if (d_reward_buffer) { cudaFree(d_reward_buffer); d_reward_buffer = nullptr; }
-    if (d_spike_events) { cudaFree(d_spike_events); d_spike_events = nullptr; }
-    if (d_spike_count) { cudaFree(d_spike_count); d_spike_count = nullptr; }
-    if (d_rng_states) { cudaFree(d_rng_states); d_rng_states = nullptr; }
-    
-    CUDA_CHECK(cudaDeviceReset());
-    std::cout << "[CUDA] Cleanup complete!" << std::endl;
+// Configuration and monitoring functions
+void setNetworkConfig(const NetworkConfig& config) {
+    g_config = config;
+    if (!g_config.validate()) {
+        std::cerr << "[ERROR] Invalid network configuration provided" << std::endl;
+        throw std::runtime_error("Invalid network configuration");
+    }
+    std::cout << "[CONFIG] Network configuration updated" << std::endl;
 }
 
-// CUDA Kernel Implementations
-__global__ void injectInputCurrentImproved(GPUNeuronState* neurons, const float* input_data, 
-                                          int input_size, float current_time, float scale) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= input_size) return;
-    
-    // Enhanced input encoding with noise and scaling
-    float normalized_input = tanhf(input_data[idx]); // Normalize to [-1, 1]
-    float current = normalized_input * scale;
-    
-    // Add small amount of noise for better dynamics
-    // Note: This is simplified; proper implementation would use curand
-    float noise = (threadIdx.x % 7 - 3) * 0.5f;
-    current += noise;
-    
-    // Inject current by modifying voltage
-    neurons[idx].voltage += current * 0.001f; // Small integration step
-    
-    // Keep voltage in reasonable range
-    neurons[idx].voltage = fminf(fmaxf(neurons[idx].voltage, -85.0f), -35.0f);
+NetworkConfig getNetworkConfig() {
+    return g_config;
 }
 
-__global__ void extractOutputImproved(const GPUNeuronState* neurons, float* output_buffer,
-                                     int output_size, float current_time) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= output_size) return;
+void printNetworkStats() {
+    std::cout << "\n=== Network Statistics ===" << std::endl;
+    std::cout << "Total Neurons: " << total_neurons << std::endl;
+    std::cout << "Total Synapses: " << total_synapses << std::endl;
+    std::cout << "Input Layer: [" << input_start << ", " << input_end << ")" << std::endl;
+    std::cout << "Hidden Layer: [" << hidden_start << ", " << hidden_end << ")" << std::endl;
+    std::cout << "Output Layer: [" << output_start << ", " << output_end << ")" << std::endl;
+    std::cout << "Current Time: " << current_time << " ms" << std::endl;
+    std::cout << "Update Count: " << g_stats.update_count << std::endl;
+    std::cout << "Average Firing Rate: " << g_stats.avg_firing_rate << " Hz" << std::endl;
+    std::cout << "Average Weight: " << g_stats.avg_weight << std::endl;
+    std::cout << "Last Reward Signal: " << g_stats.reward_signal << std::endl;
+    std::cout << "=========================" << std::endl;
+}
+
+// Advanced features
+void saveNetworkState(const std::string& filename) {
+    std::cout << "[SAVE] Saving network state to " << filename << std::endl;
     
-    const GPUNeuronState& neuron = neurons[idx];
+    // Copy GPU data to host
+    std::vector<GPUNeuronState> host_neurons(total_neurons);
+    std::vector<GPUSynapse> host_synapses(total_synapses);
     
-    // Enhanced output encoding combining voltage and spike history
-    float voltage_contribution = 1.0f / (1.0f + expf(-(neuron.voltage + 55.0f) / 10.0f));
-    
-    // Recent spike contribution with exponential decay
-    float spike_contribution = 0.0f;
-    float time_since_spike = current_time - neuron.last_spike_time;
-    if (time_since_spike < 100.0f && time_since_spike >= 0.0f) {
-        spike_contribution = expf(-time_since_spike / 30.0f) * 0.8f;
+    if (total_neurons > 0) {
+        safeCudaMemcpy(host_neurons.data(), d_neurons, total_neurons, cudaMemcpyDeviceToHost);
+    }
+    if (total_synapses > 0) {
+        safeCudaMemcpy(host_synapses.data(), d_synapses, total_synapses, cudaMemcpyDeviceToHost);
     }
     
-    // Combine contributions
-    output_buffer[idx] = voltage_contribution + spike_contribution;
+    // Simple binary save (in real implementation, use proper serialization)
+    std::ofstream file(filename, std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "[ERROR] Cannot open file for writing: " << filename << std::endl;
+        return;
+    }
     
-    // Ensure output is positive
-    output_buffer[idx] = fmaxf(output_buffer[idx], 0.0f);
+    // Save metadata
+    file.write(reinterpret_cast<const char*>(&total_neurons), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&total_synapses), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&current_time), sizeof(float));
+    
+    // Save neurons and synapses
+    if (total_neurons > 0) {
+        file.write(reinterpret_cast<const char*>(host_neurons.data()), 
+                   total_neurons * sizeof(GPUNeuronState));
+    }
+    if (total_synapses > 0) {
+        file.write(reinterpret_cast<const char*>(host_synapses.data()), 
+                   total_synapses * sizeof(GPUSynapse));
+    }
+    
+    file.close();
+    std::cout << "[SAVE] Network state saved successfully" << std::endl;
 }
 
-__global__ void applyRewardModulationImproved(GPUNeuronState* neurons, int num_neurons, float reward) {
+void loadNetworkState(const std::string& filename) {
+    std::cout << "[LOAD] Loading network state from " << filename << std::endl;
+    
+    std::ifstream file(filename, std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "[ERROR] Cannot open file for reading: " << filename << std::endl;
+        return;
+    }
+    
+    // Load metadata
+    int loaded_neurons, loaded_synapses;
+    file.read(reinterpret_cast<char*>(&loaded_neurons), sizeof(int));
+    file.read(reinterpret_cast<char*>(&loaded_synapses), sizeof(int));
+    file.read(reinterpret_cast<char*>(&current_time), sizeof(float));
+    
+    if (loaded_neurons != total_neurons || loaded_synapses != total_synapses) {
+        std::cerr << "[WARNING] Network size mismatch. Expected: " 
+                  << total_neurons << " neurons, " << total_synapses << " synapses. "
+                  << "Found: " << loaded_neurons << " neurons, " << loaded_synapses << " synapses." << std::endl;
+        file.close();
+        return;
+    }
+    
+    // Load neurons and synapses
+    std::vector<GPUNeuronState> host_neurons(total_neurons);
+    std::vector<GPUSynapse> host_synapses(total_synapses);
+    
+    if (total_neurons > 0) {
+        file.read(reinterpret_cast<char*>(host_neurons.data()), 
+                  total_neurons * sizeof(GPUNeuronState));
+        safeCudaMemcpy(d_neurons, host_neurons.data(), total_neurons, cudaMemcpyHostToDevice);
+    }
+    
+    if (total_synapses > 0) {
+        file.read(reinterpret_cast<char*>(host_synapses.data()), 
+                  total_synapses * sizeof(GPUSynapse));
+        safeCudaMemcpy(d_synapses, host_synapses.data(), total_synapses, cudaMemcpyHostToDevice);
+    }
+    
+    file.close();
+    std::cout << "[LOAD] Network state loaded successfully" << std::endl;
+}
+
+void resetNetwork() {
+    std::cout << "[RESET] Resetting network to initial state" << std::endl;
+    
+    // Reset global state
+    current_time = 0.0f;
+    g_stats.reset();
+    
+    // Reinitialize neurons to resting state
+    if (total_neurons > 0) {
+        std::vector<GPUNeuronState> host_neurons(total_neurons);
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::normal_distribution<float> voltage_dist(-65.0f, 2.0f);
+        std::uniform_real_distribution<float> gating_dist(0.0f, 0.02f);
+        
+        for (int i = 0; i < total_neurons; ++i) {
+            auto& neuron = host_neurons[i];
+            neuron.voltage = voltage_dist(gen);
+            neuron.spiked = false;
+            neuron.last_spike_time = -1000.0f;
+            
+            // Reset HH gating variables to resting state
+            neuron.m = 0.05f + gating_dist(gen);
+            neuron.h = 0.60f + gating_dist(gen);
+            neuron.n = 0.32f + gating_dist(gen);
+            
+            // Reset compartments
+            neuron.compartment_count = 1;
+            neuron.voltages[0] = neuron.voltage;
+            neuron.I_leak[0] = 0.0f;
+            neuron.Cm[0] = 1.0f;
+        }
+        
+        safeCudaMemcpy(d_neurons, host_neurons.data(), total_neurons, cudaMemcpyHostToDevice);
+    }
+    
+    // Clear buffers
+    if (d_input_buffer) safeCudaMemset(d_input_buffer, 0, g_config.input_size);
+    if (d_output_buffer) safeCudaMemset(d_output_buffer, 0, g_config.output_size);
+    if (d_spike_count) safeCudaMemset(d_spike_count, 0, 1);
+    
+    std::cout << "[RESET] Network reset complete" << std::endl;
+}
+
+// Additional missing namespace function
+namespace NetworkCUDAInternal {
+    void validateInputs(const std::vector<float>& input, float reward_signal) {
+        if (input.size() != g_config.input_size) {
+            throw std::invalid_argument("Input size mismatch");
+        }
+        
+        for (size_t i = 0; i < input.size(); ++i) {
+            if (!std::isfinite(input[i])) {
+                throw std::invalid_argument("Non-finite input detected at index " + std::to_string(i));
+            }
+        }
+        
+        if (!std::isfinite(reward_signal)) {
+            throw std::invalid_argument("Non-finite reward signal");
+        }
+    }
+}
+
+// Additional CUDA kernels
+__global__ void applyHomeostaticScalingKernel(GPUSynapse* synapses, int num_synapses, 
+                                             float scale_factor, float target_rate, float current_rate) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_synapses) return;
+    
+    // Simple homeostatic scaling based on activity
+    float rate_ratio = target_rate / fmaxf(current_rate, 0.001f);
+    float scaling = 1.0f + scale_factor * (rate_ratio - 1.0f);
+    
+    // Apply scaling to synaptic weights
+    synapses[idx].weight *= scaling;
+    
+    // Keep weights within bounds
+    synapses[idx].weight = fminf(fmaxf(synapses[idx].weight, -5.0f), 5.0f);
+}
+
+__global__ void validateNeuronStates(GPUNeuronState* neurons, int num_neurons, bool* is_valid) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_neurons) return;
     
-    // Enhanced reward modulation affecting multiple neuron properties
-    float modulation = reward * 0.05f; // Scale reward signal
+    const GPUNeuronState& neuron = neurons[idx];
     
-    // Modulate leak current (affects excitability)
-    neurons[idx].I_leak[0] += modulation;
-    neurons[idx].I_leak[0] = fminf(fmaxf(neurons[idx].I_leak[0], -3.0f), 3.0f);
+    // Check if neuron state is valid
+    bool valid = true;
+    valid &= isfinite(neuron.voltage) && neuron.voltage > -150.0f && neuron.voltage < 100.0f;
+    valid &= isfinite(neuron.m) && neuron.m >= 0.0f && neuron.m <= 1.0f;
+    valid &= isfinite(neuron.h) && neuron.h >= 0.0f && neuron.h <= 1.0f;
+    valid &= isfinite(neuron.n) && neuron.n >= 0.0f && neuron.n <= 1.0f;
     
-    // Slight modulation of gating variables for long-term effects
-    if (reward > 0.1f) {
-        neurons[idx].m = fminf(neurons[idx].m + modulation * 0.001f, 1.0f);
-    } else if (reward < -0.1f) {
-        neurons[idx].h = fminf(neurons[idx].h - modulation * 0.001f, 1.0f);
-    }
-}
-
-__global__ void computeNetworkStatistics(const GPUNeuronState* neurons, const GPUSynapse* synapses,
-                                        int num_neurons, int num_synapses, float* stats) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
-    // Simplified statistics computation
-    if (idx < num_neurons) {
-        if (neurons[idx].spiked) {
-            atomicAdd(&stats[0], 1.0f); // Spike count
-        }
-        atomicAdd(&stats[1], neurons[idx].voltage); // Average voltage
-    }
-    
-    if (idx < num_synapses) {
-        atomicAdd(&stats[2], fabsf(synapses[idx].weight)); // Average absolute weight
-        atomicAdd(&stats[3], synapses[idx].activity_metric); // Activity metric
-    }
-}
-
-__global__ void resetSpikeFlags(GPUNeuronState* neurons, int num_neurons) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < num_neurons) {
-        neurons[idx].spiked = false;
+    if (!valid) {
+        is_valid[0] = false;
     }
 }

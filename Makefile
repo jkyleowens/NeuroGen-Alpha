@@ -20,7 +20,7 @@ OBJDIR := build
 BINDIR := bin
 
 # Include paths
-INCLUDES := -I./src/cuda -I$(CUDA_HOME)/include -I./
+INCLUDES := -I./include/NeuroGen -I./include/NeuroGen/cuda -I./src/cuda -I$(CUDA_HOME)/include -I./
 
 # Compiler flags
 NVCC_FLAGS := -std=c++17 -O3 $(INCLUDES) \

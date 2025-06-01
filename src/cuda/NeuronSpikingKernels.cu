@@ -1,5 +1,5 @@
 // NeuronSpikingKernels.cu – implementations
-#include "NeuronSpikingKernels.cuh"
+#include "../../include/NeuroGen/cuda/NeuronSpikingKernels.cuh"
 #include <device_launch_parameters.h>
 
 /* ------------------------------------------------------------------------- */

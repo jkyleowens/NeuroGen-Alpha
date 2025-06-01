@@ -1,10 +1,10 @@
-#include "KernelLaunchWrappers.cuh"
-#include "NeuronUpdateKernel.cuh"
-#include "NeuronSpikingKernels.cuh"
-#include "SynapseInputKernel.cuh"
-#include "STDPKernel.cuh"
-#include "RandomStateInit.cuh"
-#include "GridBlockUtils.cuh"
+#include "../../include/NeuroGen/cuda/KernelLaunchWrappers.cuh"
+#include "../../include/NeuroGen/cuda/NeuronUpdateKernel.cuh"
+#include "../../include/NeuroGen/cuda/NeuronSpikingKernels.cuh"
+#include "../../include/NeuroGen/cuda/SynapseInputKernel.cuh"
+#include "../../include/NeuroGen/cuda/STDPKernel.cuh"
+#include "../../include/NeuroGen/cuda/RandomStateInit.cuh"
+#include "../../include/NeuroGen/cuda/GridBlockUtils.cuh"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 

@@ -1,5 +1,5 @@
 // NeuronUpdateKernel.cu – full HH + RK4 implementation
-#include "NeuronUpdateKernel.cuh"
+#include "../../include/NeuroGen/cuda/NeuronUpdateKernel.cuh"
 #include <device_launch_parameters.h>
 #include <math_constants.h>
 #include <cmath>
