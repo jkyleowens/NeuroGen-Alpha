@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+
 /* ------------------------------------------------------------------------- */
 /*  Core POD structs shared by all CUDA kernels                               */
 /* ------------------------------------------------------------------------- */

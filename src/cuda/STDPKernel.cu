@@ -1,8 +1,9 @@
 // STDPKernel.cu - Implementation file
 #include "STDPKernel.cuh"
 #include "GPUNeuralStructures.h"
-#include "GridBlockUtils.cuh" // for makeGrid/makeBlock
+#include "GridBlockUtils.cuh"
 #include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 
 // Replace missing RewardModulation.h with inline implementation
 class NeuromodulatorState {

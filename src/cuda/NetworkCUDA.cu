@@ -1,12 +1,22 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <algorithm>
 #include <cuda_runtime.h>
-#include "STDPKernel.cuh"
+#include <device_launch_parameters.h>
 #include <curand_kernel.h>
 #include "NetworkCUDA.cuh"
 #include "GPUNeuralStructures.h"
 #include "STDPKernel.cuh"
+
+// Forward declare CUDA kernels
+__global__ void injectInputCurrent(GPUNeuronState* input_neurons, float* input_data, 
+                                  int input_size, float current_time);
+__global__ void extractNeuralOutput(GPUNeuronState* output_neurons, float* output_buffer,
+                                   int output_size, float current_time);
+__global__ void applyRewardModulation(GPUNeuronState* neurons, int num_neurons, float reward);
+__global__ void applyHomeostaticScaling(GPUSynapse* synapses, int num_synapses, float scale_factor);
+__global__ void pruneSynapses(GPUSynapse* synapses, int num_synapses, float min_weight);
 
 // Network topology and GPU state
 static GPUNeuronState* d_neurons = nullptr;
@@ -165,8 +175,10 @@ std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_sig
     cudaMemcpy(d_input_buffer, input.data(), INPUT_SIZE * sizeof(float), cudaMemcpyHostToDevice);
     
     // Inject input as current to input neurons (simple rate coding)
-    // We'll need a kernel to convert input features to neural currents
-    injectInputCurrent<<<(INPUT_SIZE + 255) / 256, 256>>>(
+    // Use wrapper function for proper kernel configuration
+    dim3 block(256);
+    dim3 grid((INPUT_SIZE + 255) / 256);
+    injectInputCurrent<<<grid, block>>>(
         d_neurons + INPUT_START, d_input_buffer, INPUT_SIZE, current_time
     );
     
@@ -189,7 +201,8 @@ std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_sig
         
         // Apply reward modulation to dopaminergic influence
         if (step == PROCESSING_STEPS - 1) { // Apply reward at end of processing
-            applyRewardModulation<<<(num_neurons + 255) / 256, 256>>>(
+            dim3 reward_grid((num_neurons + 255) / 256);
+            applyRewardModulation<<<reward_grid, block>>>(
                 d_neurons, num_neurons, reward_signal
             );
         }
@@ -197,9 +210,11 @@ std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_sig
     
     // Extract output from output neurons
     std::vector<float> raw_output(OUTPUT_SIZE);
-    extractNeuralOutput<<<(OUTPUT_SIZE + 255) / 256, 256>>>(
+    dim3 output_grid((OUTPUT_SIZE + 255) / 256);
+    extractNeuralOutput<<<output_grid, block>>>(
         d_neurons + OUTPUT_START, d_output_buffer, OUTPUT_SIZE, current_time
     );
+    
     cudaMemcpy(raw_output.data(), d_output_buffer, OUTPUT_SIZE * sizeof(float), cudaMemcpyDeviceToHost);
     
     // Apply softmax normalization for decision probabilities
@@ -244,14 +259,18 @@ void updateSynapticWeightsCUDA(float reward_signal) {
     // Apply homeostatic scaling every 100 updates to prevent runaway dynamics
     static int update_counter = 0;
     if (++update_counter % 100 == 0) {
-        applyHomeostaticScaling<<<(num_synapses + 255) / 256, 256>>>(
+        dim3 block(256);
+        dim3 grid((num_synapses + 255) / 256);
+        applyHomeostaticScaling<<<grid, block>>>(
             d_synapses, num_synapses, 0.99f // Slight scaling factor
         );
     }
     
     // Prune very weak synapses occasionally for efficiency
     if (update_counter % 1000 == 0) {
-        pruneSynapses<<<(num_synapses + 255) / 256, 256>>>(
+        dim3 block2(256);
+        dim3 prune_grid((num_synapses + 255) / 256);
+        pruneSynapses<<<prune_grid, block2>>>(
             d_synapses, num_synapses, 0.001f // Minimum weight threshold
         );
     }
