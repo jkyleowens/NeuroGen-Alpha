@@ -1,0 +1,42 @@
+{
+  "network": {
+    "input_size": 60,
+    "hidden_size": 512,
+    "output_size": 3,
+    "connection_probability": {
+      "input_to_hidden": 0.8,
+      "hidden_to_hidden": 0.1,
+      "hidden_to_output": 1.0
+    },
+    "initial_weights": {
+      "input_to_hidden": 0.5,
+      "hidden_to_hidden": 0.3,
+      "hidden_to_output": 0.2
+    }
+  },
+  "simulation": {
+    "dt": 0.01,
+    "spike_threshold": -40.0,
+    "processing_steps": 10
+  },
+  "stdp": {
+    "A_plus": 0.008,
+    "A_minus": 0.010,
+    "tau_plus": 20.0,
+    "tau_minus": 25.0,
+    "weight_bounds": {
+      "min": -1.0,
+      "max": 1.0
+    },
+    "reward_modulation": {
+      "learning_rate_scale": 0.1,
+      "depression_scale": 0.05
+    }
+  },
+  "homeostasis": {
+    "scaling_frequency": 100,
+    "scaling_factor": 0.99,
+    "pruning_frequency": 1000,
+    "min_weight_threshold": 0.001
+  }
+}
