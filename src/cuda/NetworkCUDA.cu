@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <memory>
 #include <chrono>
+#include <curand_kernel.h>
 
 // Global network state
 static NetworkConfig g_config;

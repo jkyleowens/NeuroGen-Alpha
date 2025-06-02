@@ -1,0 +1,276 @@
+# Practical Step-by-Step Makefile for CUDA Neural Trading System
+# This version builds incrementally and addresses compilation errors systematically
+
+# Check for nvcc
+NVCC_PATH := $(shell which nvcc)
+ifeq ($(NVCC_PATH),)
+$(error nvcc not found in PATH. Please install CUDA toolkit)
+endif
+
+# Basic settings
+NVCC := $(NVCC_PATH)
+CUDA_HOME ?= /usr/local/cuda
+
+# GPU architecture (auto-detect or default)
+GPU_ARCH ?= $(shell nvidia-smi --query-gpu=compute_cap --format=csv,noheader,nounits 2>/dev/null | head -1 | tr -d '.' || echo "75")
+
+# Directories
+SRCDIR := src/cuda
+OBJDIR := build
+BINDIR := bin
+INCDIR := include/NeuroGen
+
+# Include paths - be very explicit about where things are
+INCLUDES := -I. \
+            -I./src \
+            -I./src/cuda \
+            -I$(CUDA_HOME)/include
+
+# Compiler flags
+NVCC_FLAGS := -std=c++17 -O2 $(INCLUDES) \
+              --expt-relaxed-constexpr \
+              -gencode arch=compute_$(GPU_ARCH),code=sm_$(GPU_ARCH) \
+              --use_fast_math \
+              -Xcompiler -fPIC
+
+# Debug build option
+ifdef DEBUG
+    NVCC_FLAGS += -g -G -DDEBUG
+    BUILD_TYPE := debug
+else
+    NVCC_FLAGS += -DNDEBUG
+    BUILD_TYPE := release
+endif
+
+# Linker flags
+ifdef USE_CURAND
+LDFLAGS += -lcurand
+endif
+ifdef USE_CUDART
+LDFLAGS += -lcudart
+endif
+LDFLAGS += -L$(CUDA_HOME)/lib64
+
+# Step 1: Build only the CUDA files that definitely exist and work
+BASIC_CU_SRCS := \
+    $(SRCDIR)/RandomStateInit.cu \
+    $(SRCDIR)/NeuronUpdateKernel.cu \
+    $(SRCDIR)/NeuronSpikingKernels.cu \
+    $(SRCDIR)/SynapseInputKernel.cu \
+    $(SRCDIR)/STDPKernel.cu
+
+# Step 2: Add wrapper files
+WRAPPER_CU_SRCS := \
+    $(SRCDIR)/KernelLaunchWrappers.cu
+
+# Step 3: Add main network file
+NETWORK_CU_SRCS := \
+    $(SRCDIR)/NetworkCUDA.cu
+
+# All CUDA sources
+ALL_CU_SRCS := $(BASIC_CU_SRCS) $(WRAPPER_CU_SRCS) $(NETWORK_CU_SRCS)
+
+# C++ sources
+CPP_SRCS := \
+    main.cpp \
+    src/TopologyGenerator.cpp
+
+# Object files
+CU_OBJS := $(ALL_CU_SRCS:$(SRCDIR)/%.cu=$(OBJDIR)/%.cu.o)
+CPP_OBJS := $(CPP_SRCS:%.cpp=$(OBJDIR)/%.cpp.o)
+ALL_OBJS := $(CU_OBJS) $(CPP_OBJS)
+
+# Target
+TARGET := $(BINDIR)/neural_trading_sim
+
+# Default target
+all: setup headers $(TARGET)
+
+# Setup directories
+setup:
+	@echo "=== Setting Up Build Environment ==="
+	@echo "CUDA Toolkit: $(CUDA_HOME)"
+	@echo "GPU Architecture: $(GPU_ARCH)"
+	@echo "Build Type: $(BUILD_TYPE)"
+	@mkdir -p $(OBJDIR)/src/cuda $(BINDIR) $(SRCDIR) $(INCDIR)/cuda $(INCDIR) || (echo "Error: Failed to create directories" && exit 1)
+
+# Create necessary header files from artifacts
+headers: setup
+	@echo "Creating necessary header files..."
+	@mkdir -p $(INCDIR)/cuda
+	@echo "Creating CudaUtils.cuh..."
+	@echo '#pragma once' > $(INCDIR)/cuda/CudaUtils.cuh
+	@echo '#include <cuda_runtime.h>' >> $(INCDIR)/cuda/CudaUtils.cuh
+	@echo '#include <iostream>' >> $(INCDIR)/cuda/CudaUtils.cuh
+	@cat >> $(INCDIR)/cuda/CudaUtils.cuh << 'EOF'
+#define CUDA_CHECK(call) do { \
+    cudaError_t error = call; \
+    if (error != cudaSuccess) { \
+        std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl; \
+        throw std::runtime_error("CUDA error"); \
+    } \
+} while(0)
+#define CUDA_CHECK_KERNEL() CUDA_CHECK(cudaGetLastError())
+template<typename T> void safeCudaMalloc(T** ptr, size_t count) { CUDA_CHECK(cudaMalloc(ptr, count * sizeof(T))); }
+template<typename T> void safeCudaMemcpy(T* dst, const T* src, size_t count, cudaMemcpyKind kind) { CUDA_CHECK(cudaMemcpy(dst, src, count * sizeof(T), kind)); }
+template<typename T> void safeCudaMemset(T* ptr, int value, size_t count) { CUDA_CHECK(cudaMemset(ptr, value, count * sizeof(T))); }
+inline dim3 getOptimalBlockSize() { return dim3(256); }
+inline dim3 getOptimalGridSize(int num_elements, int block_size = 256) { return dim3((num_elements + block_size - 1) / block_size); }
+inline void printDeviceInfo() { std::cout << "CUDA Device Info\n"; }
+EOF
+
+# Step-by-step build targets
+step1: setup headers $(OBJDIR)/basic_kernels.stamp
+	@echo "Step 1: Basic kernels compiled successfully!"
+
+step2: step1 $(OBJDIR)/wrappers.stamp
+	@echo "Step 2: Wrapper functions compiled successfully!"
+
+step3: step2 $(OBJDIR)/network.stamp
+	@echo "Step 3: Network functions compiled successfully!"
+
+step4: step3 $(TARGET)
+	@echo "Step 4: Full system built successfully!"
+
+# Stamp files to track build progress
+$(OBJDIR)/basic_kernels.stamp: $(BASIC_CU_SRCS:$(SRCDIR)/%.cu=$(OBJDIR)/%.cu.o)
+	@touch $@
+
+$(OBJDIR)/wrappers.stamp: $(WRAPPER_CU_SRCS:$(SRCDIR)/%.cu=$(OBJDIR)/%.cu.o)
+	@touch $@
+
+$(OBJDIR)/network.stamp: $(NETWORK_CU_SRCS:$(SRCDIR)/%.cu=$(OBJDIR)/%.cu.o)
+	@touch $@
+
+# Build target
+$(TARGET): $(ALL_OBJS)
+	@echo "Linking $(TARGET)..."
+	$(NVCC) $(NVCC_FLAGS) -o $@ $^ $(LDFLAGS)
+	@echo "Build complete!"
+
+# Compile CUDA files with specific error handling
+$(OBJDIR)/%.cu.o: $(SRCDIR)/%.cu
+	@echo "Compiling CUDA: $<"
+	@mkdir -p $(dir $@)
+	$(NVCC) $(NVCC_FLAGS) -dc $< -o $@ > $(OBJDIR)/$(notdir $<).log 2>&1 || (echo "Error compiling $<"; cat $(OBJDIR)/$(notdir $<).log; exit 1)
+
+# Compile C++ files
+$(OBJDIR)/%.cpp.o: %.cpp
+	@echo "Compiling C++: $<"
+	@mkdir -p $(dir $@)
+	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ 2>&1 | tee $(OBJDIR)/$(notdir $<).log || (echo "Error compiling $<"; cat $(OBJDIR)/$(notdir $<).log; exit 1)
+
+# Create minimal main.cpp if it doesn't exist
+main.cpp:
+	@echo "Creating minimal main.cpp..."
+	@cat > main.cpp << 'EOF'
+#include <iostream>
+#include <vector>
+// Forward declarations for the network functions
+void initializeNetwork();
+std::vector<float> forwardCUDA(const std::vector<float>& input, float reward);
+void updateSynapticWeightsCUDA(float reward);
+void cleanupNetwork();
+int main() {
+    try {
+        std::cout << "Neural Trading System Starting..." << std::endl;
+        initializeNetwork();
+        std::vector<float> input = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f};
+        auto output = forwardCUDA(input, 0.1f);
+        std::cout << "Network output: ";
+        for (float val : output) std::cout << val << " ";
+        std::cout << std::endl;
+        updateSynapticWeightsCUDA(0.1f);
+        cleanupNetwork();
+        std::cout << "System completed successfully!" << std::endl;
+        return 0;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+}
+EOF
+
+# Check what we have
+check-files:
+	@echo "=== Checking Available Files ==="
+	@echo "CUDA Source Files:"
+	@for file in $(ALL_CU_SRCS); do \
+		if [ -f "$$file" ]; then \
+			echo "  ✓ $$file"; \
+		else \
+			echo "  ✗ $$file (missing)"; \
+		fi \
+	done
+	@echo "C++ Source Files:"
+	@for file in $(CPP_SRCS); do \
+		if [ -f "$$file" ]; then \
+			echo "  ✓ $$file"; \
+		else \
+			echo "  ✗ $$file (missing)"; \
+		fi \
+	done
+
+# Test individual compilation
+test-compile-%: $(SRCDIR)/%.cu
+	@echo "Testing compilation of $<..."
+	$(NVCC) $(NVCC_FLAGS) -c $< -o /tmp/test_$*.o
+	@echo "✓ $< compiles successfully"
+
+# Clean
+clean:
+	@echo "Cleaning..."
+	rm -rf $(OBJDIR) $(BINDIR)
+
+# Deep clean
+distclean: clean
+	rm -rf $(INCDIR)
+	rm -f main.cpp
+
+# Show compilation errors
+show-errors:
+	@echo "=== Recent Compilation Errors ==="
+	@find $(OBJDIR) -name "*.log" -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || echo "No error logs found"
+
+# Debug: Show all variables
+debug-vars:
+	@echo "NVCC: $(NVCC)"
+	@echo "CUDA_HOME: $(CUDA_HOME)"
+	@echo "GPU_ARCH: $(GPU_ARCH)"
+	@echo "INCLUDES: $(INCLUDES)"
+	@echo "NVCC_FLAGS: $(NVCC_FLAGS)"
+	@echo "ALL_CU_SRCS: $(ALL_CU_SRCS)"
+	@echo "CPP_SRCS: $(CPP_SRCS)"
+
+# Run the built program
+run: $(TARGET)
+	@echo "Running neural trading simulation..."
+	./$(TARGET)
+
+# Help
+help:
+	@echo "Neural Trading System Build - Step by Step"
+	@echo ""
+	@echo "Step-by-step build targets:"
+	@echo "  step1       - Compile basic CUDA kernels"
+	@echo "  step2       - Add wrapper functions"
+	@echo "  step3       - Add network implementation"
+	@echo "  step4       - Complete build"
+	@echo ""
+	@echo "Main targets:"
+	@echo "  all         - Full build (equivalent to step4)"
+	@echo "  clean       - Remove build artifacts"
+	@echo "  distclean   - Remove all generated files"
+	@echo "  run         - Build and run"
+	@echo ""
+	@echo "Debugging:"
+	@echo "  check-files - Check which source files exist"
+	@echo "  show-errors - Show recent compilation errors"
+	@echo "  debug-vars  - Show all makefile variables"
+	@echo "  test-compile-NAME - Test compile individual file"
+	@echo ""
+	@echo "Options:"
+	@echo "  DEBUG=1     - Build with debug symbols"
+
+.PHONY: all setup headers step1 step2 step3 step4 clean distclean run check-files show-errors debug-vars help
+.PRECIOUS: $(OBJDIR)/%.cu.o $(OBJDIR)/%.cpp.o
