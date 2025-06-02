@@ -4,10 +4,11 @@
 
 #include <vector>
 #include <random>
+#include <chrono>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-#include "../GPUNeuralStructures.h"
-#include "../NetworkConfig.h"
+#include "GPUNeuralStructures.h"
+#include "NetworkConfig.h"
 
 // Main interface functions for the neural network
 extern "C" {
@@ -36,6 +37,10 @@ namespace NetworkCUDAInternal {
     void applyHomeostaticScaling();
     void validateInputs(const std::vector<float>& input, float reward_signal);
 }
+
+// Forward declaration for GPUNeuronState and GPUSynapse
+struct GPUNeuronState;
+struct GPUSynapse;
 
 // CUDA kernel declarations for internal use
 __global__ void injectInputCurrentImproved(GPUNeuronState* neurons, const float* input_data, 
@@ -125,7 +130,7 @@ namespace NetworkConstants {
 // Performance profiling utilities
 class NetworkProfiler {
 private:
-    std::chrono::high_resolution_clock::time_point start_time_;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start_time_;
     std::vector<float> timing_data_;
     bool is_profiling_;
     

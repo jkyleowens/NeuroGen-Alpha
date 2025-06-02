@@ -2,10 +2,10 @@
 #ifndef NETWORK_UPDATE_STUB_H
 #define NETWORK_UPDATE_STUB_H
 
-#include "cuda/GPUNeuralStructures.h"
-#include "cuda/CUDAAllocatorsExtended.cuh"
-#include "cuda/NeuronUpdateKernel.cuh"
-#include "cuda/KernelLaunchWrappers.cuh"
+#include <NeuroGen/GPUNeuralStructures.h>
+#include <NeuroGen/cuda/CUDA_Allocators.cuh>
+#include <NeuroGen/cuda/NeuronUpdateKernel.cuh>
+#include <NeuroGen/cuda/KernelLaunchWrappers.cuh>
 
 class NetworkCUDA {
 public:

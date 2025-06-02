@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef __CUDACC__
-#include "../GPUNeuralStructures.h"
+#include "GPUNeuralStructures.h"
 #include "RandomStateInit.cuh"
 #include <curand_kernel.h>
 #include <cuda_runtime.h>

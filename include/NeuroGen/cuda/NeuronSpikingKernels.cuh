@@ -3,7 +3,7 @@
 #define NEURON_SPIKING_KERNELS_CUH
 
 #include <cuda_runtime.h>
-#include "../GPUNeuralStructures.h"
+#include "GPUNeuralStructures.h"
 
 /* ------------------------------------------------------------------------- */
 /*  Pure “spike bookkeeping” kernels                                         */

@@ -1,3 +1,4 @@
+// include/NeuroGen/GPUNeuralStructures.h
 #pragma once
 
 #include <cuda_runtime.h>
@@ -36,4 +37,20 @@ struct GPUSynapse {
 struct GPUSpikeEvent {
     int   neuron_index;
     float spike_time;
+};
+
+struct GPUCorticalColumn {
+    // range of neurons belonging to this column  [begin, end)
+    int neuron_start;
+    int neuron_end;
+
+    // range of synapses whose *post* neuron lives in this column
+    int synapse_start;
+    int synapse_end;
+
+    // fast access to working buffers (device ptrs live in NetworkCUDA.cu)
+    float* d_local_dopamine;     // neuromodulator buffer (optional)
+    unsigned int* d_local_rng_state; // rng for structural plasticity
+
+    int size() const { return neuron_end - neuron_start; }
 };

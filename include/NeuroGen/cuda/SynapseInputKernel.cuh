@@ -2,7 +2,7 @@
 #ifndef SYNAPSE_INPUT_KERNEL_H
 #define SYNAPSE_INPUT_KERNEL_H
 
-#include "../GPUNeuralStructures.h"
+#include "GPUNeuralStructures.h"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 

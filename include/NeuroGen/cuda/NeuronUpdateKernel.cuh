@@ -2,7 +2,7 @@
 #ifndef NEURON_UPDATE_KERNEL_CUH
 #define NEURON_UPDATE_KERNEL_CUH
 
-#include "../GPUNeuralStructures.h"
+#include "GPUNeuralStructures.h"
 #include <cuda_runtime.h>
 
 /* ------------------------------------------------------------------------- */

@@ -4,7 +4,7 @@
 
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-#include "../GPUNeuralStructures.h"
+#include "GPUNeuralStructures.h"
 
 // Forward declarations only - no function definitions in header!
 
