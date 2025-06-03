@@ -1,110 +1,160 @@
-// NeuronUpdateKernel.cu – full HH + RK4 implementation
 #include "../../include/NeuroGen/cuda/NeuronUpdateKernel.cuh"
-#include <device_launch_parameters.h>
-#include <math_constants.h>
-#include <cmath>
+#include "../../include/NeuroGen/GPUNeuralStructures.h"
+#include <cuda_runtime.h>
+#include <math.h>
 
-/* HH constants (mV, mS/cm²) ------------------------------------------------ */
-#define ENa   50.0f
-#define EK   -77.0f
-#define EL   -54.387f
-#define gNa 120.0f
-#define gK   36.0f
-#define gL    0.3f
-#define EPS  1e-6f
+// Hodgkin-Huxley model parameters
+#define HH_G_NA 120.0f
+#define HH_G_K 36.0f
+#define HH_G_L 0.3f
+#define HH_E_NA 50.0f
+#define HH_E_K -77.0f
+#define HH_E_L -54.387f
 
-/* Small helper to avoid /0 -------------------------------------------------- */
-__device__ inline float safe_den(float x) { return fabsf(x) < EPS ? EPS : x; }
-
-/* Channel rate equations ---------------------------------------------------- */
-__device__ float alpha_n(float V) { return (0.01f * (V + 55.0f)) / safe_den(1.0f - expf(-0.1f * (V + 55.0f))); }
-__device__ float beta_n (float V) { return 0.125f * expf(-(V + 65.0f) / 80.0f); }
-
-__device__ float alpha_m(float V) { return (0.1f  * (V + 40.0f)) / safe_den(1.0f - expf(-0.1f * (V + 40.0f))); }
-__device__ float beta_m (float V) { return 4.0f   * expf(-(V + 65.0f) / 18.0f); }
-
-__device__ float alpha_h(float V) { return 0.07f  * expf(-(V + 65.0f) / 20.0f); }
-__device__ float beta_h (float V) { return 1.0f   / safe_den(1.0f + expf(-0.1f * (V + 35.0f))); }
-
-/* dV/dt --------------------------------------------------------------------- */
-__device__ float dVdt(float V, float m, float h, float n)
-{
-    float INa = gNa * powf(m, 3) * h  * (V - ENa);
-    float IK  = gK  * powf(n, 4)       * (V - EK );
-    float IL  = gL                     * (V - EL );
-    return -(INa + IK + IL);           // Cm = 1 µF/cm²
+// Helper functions for Hodgkin-Huxley model
+__device__ float alpha_m(float v) {
+    float v_shifted = v + 40.0f;
+    return (0.1f * v_shifted) / (1.0f - expf(-0.1f * v_shifted));
 }
 
-/* Main RK4 kernel ----------------------------------------------------------- */
+__device__ float beta_m(float v) {
+    return 4.0f * expf(-(v + 65.0f) / 18.0f);
+}
+
+__device__ float alpha_h(float v) {
+    return 0.07f * expf(-(v + 65.0f) / 20.0f);
+}
+
+__device__ float beta_h(float v) {
+    return 1.0f / (1.0f + expf(-(v + 35.0f) / 10.0f));
+}
+
+__device__ float alpha_n(float v) {
+    float v_shifted = v + 55.0f;
+    return (0.01f * v_shifted) / (1.0f - expf(-0.1f * v_shifted));
+}
+
+__device__ float beta_n(float v) {
+    return 0.125f * expf(-(v + 65.0f) / 80.0f);
+}
+
+// RK4 integration for Hodgkin-Huxley model
 __global__ void rk4NeuronUpdateKernel(GPUNeuronState* neurons,
-                                      int             num_neurons,
-                                      float           dt)
-{
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    if (idx >= num_neurons) return;
-
-    /* Load state */
+                                     float dt, int N) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= N) return;
+    
     GPUNeuronState s = neurons[idx];
-    float V = s.voltage, m = s.m, h = s.h, n = s.n;
-
-    /* ---- stage 1 ---- */
-    float k1  = dVdt(V, m, h, n);
-    float dm1 = alpha_m(V)*(1 - m) - beta_m(V)*m;
-    float dh1 = alpha_h(V)*(1 - h) - beta_h(V)*h;
-    float dn1 = alpha_n(V)*(1 - n) - beta_n(V)*n;
-
-    /* ---- stage 2 ---- */
-    float V2  = V + 0.5f*dt*k1;
-    float m2  = m + 0.5f*dt*dm1;
-    float h2  = h + 0.5f*dt*dh1;
-    float n2  = n + 0.5f*dt*dn1;
-    float k2  = dVdt(V2, m2, h2, n2);
-    float dm2 = alpha_m(V2)*(1 - m2) - beta_m(V2)*m2;
-    float dh2 = alpha_h(V2)*(1 - h2) - beta_h(V2)*h2;
-    float dn2 = alpha_n(V2)*(1 - n2) - beta_n(V2)*n2;
-
-    /* ---- stage 3 ---- */
-    float V3  = V + 0.5f*dt*k2;
-    float m3  = m + 0.5f*dt*dm2;
-    float h3  = h + 0.5f*dt*dh2;
-    float n3  = n + 0.5f*dt*dn2;
-    float k3  = dVdt(V3, m3, h3, n3);
-    float dm3 = alpha_m(V3)*(1 - m3) - beta_m(V3)*m3;
-    float dh3 = alpha_h(V3)*(1 - h3) - beta_h(V3)*h3;
-    float dn3 = alpha_n(V3)*(1 - n3) - beta_n(V3)*n3;
-
-    /* ---- stage 4 ---- */
-    float V4  = V + dt*k3;
-    float m4  = m + dt*dm3;
-    float h4  = h + dt*dh3;
-    float n4  = n + dt*dn3;
-    float k4  = dVdt(V4, m4, h4, n4);
-    float dm4 = alpha_m(V4)*(1 - m4) - beta_m(V4)*m4;
-    float dh4 = alpha_h(V4)*(1 - h4) - beta_h(V4)*h4;
-    float dn4 = alpha_n(V4)*(1 - n4) - beta_n(V4)*n4;
-
-    /* ---- combine ---- */
-    V += (dt / 6.0f) * (k1  + 2*k2  + 2*k3  + k4 );
-    m += (dt / 6.0f) * (dm1 + 2*dm2 + 2*dm3 + dm4);
-    h += (dt / 6.0f) * (dh1 + 2*dh2 + 2*dh3 + dh4);
-    n += (dt / 6.0f) * (dn1 + 2*dn2 + 2*dn3 + dn4);
-
-    /* Write back */
-    if (!isnan(V) && !isinf(V)) {
-        s.voltage = V;  s.m = m;  s.h = h;  s.n = n;
-        neurons[idx] = s;
-    }
+    
+    // Skip inactive neurons
+    if (s.active == 0) return;
+    
+    // Extract state variables
+    float v = s.voltage;
+    float m = s.m;
+    float h = s.h;
+    float n = s.n;
+    
+    // RK4 integration
+    // k1
+    float I_Na = HH_G_NA * m*m*m * h * (v - HH_E_NA);
+    float I_K = HH_G_K * n*n*n*n * (v - HH_E_K);
+    float I_L = HH_G_L * (v - HH_E_L);
+    float I_total = -(I_Na + I_K + I_L);
+    
+    float k1_v = dt * I_total;
+    float k1_m = dt * (alpha_m(v) * (1.0f - m) - beta_m(v) * m);
+    float k1_h = dt * (alpha_h(v) * (1.0f - h) - beta_h(v) * h);
+    float k1_n = dt * (alpha_n(v) * (1.0f - n) - beta_n(v) * n);
+    
+    // k2
+    float v2 = v + 0.5f * k1_v;
+    float m2 = m + 0.5f * k1_m;
+    float h2 = h + 0.5f * k1_h;
+    float n2 = n + 0.5f * k1_n;
+    
+    I_Na = HH_G_NA * m2*m2*m2 * h2 * (v2 - HH_E_NA);
+    I_K = HH_G_K * n2*n2*n2*n2 * (v2 - HH_E_K);
+    I_L = HH_G_L * (v2 - HH_E_L);
+    I_total = -(I_Na + I_K + I_L);
+    
+    float k2_v = dt * I_total;
+    float k2_m = dt * (alpha_m(v2) * (1.0f - m2) - beta_m(v2) * m2);
+    float k2_h = dt * (alpha_h(v2) * (1.0f - h2) - beta_h(v2) * h2);
+    float k2_n = dt * (alpha_n(v2) * (1.0f - n2) - beta_n(v2) * n2);
+    
+    // k3
+    float v3 = v + 0.5f * k2_v;
+    float m3 = m + 0.5f * k2_m;
+    float h3 = h + 0.5f * k2_h;
+    float n3 = n + 0.5f * k2_n;
+    
+    I_Na = HH_G_NA * m3*m3*m3 * h3 * (v3 - HH_E_NA);
+    I_K = HH_G_K * n3*n3*n3*n3 * (v3 - HH_E_K);
+    I_L = HH_G_L * (v3 - HH_E_L);
+    I_total = -(I_Na + I_K + I_L);
+    
+    float k3_v = dt * I_total;
+    float k3_m = dt * (alpha_m(v3) * (1.0f - m3) - beta_m(v3) * m3);
+    float k3_h = dt * (alpha_h(v3) * (1.0f - h3) - beta_h(v3) * h3);
+    float k3_n = dt * (alpha_n(v3) * (1.0f - n3) - beta_n(v3) * n3);
+    
+    // k4
+    float v4 = v + k3_v;
+    float m4 = m + k3_m;
+    float h4 = h + k3_h;
+    float n4 = n + k3_n;
+    
+    I_Na = HH_G_NA * m4*m4*m4 * h4 * (v4 - HH_E_NA);
+    I_K = HH_G_K * n4*n4*n4*n4 * (v4 - HH_E_K);
+    I_L = HH_G_L * (v4 - HH_E_L);
+    I_total = -(I_Na + I_K + I_L);
+    
+    float k4_v = dt * I_total;
+    float k4_m = dt * (alpha_m(v4) * (1.0f - m4) - beta_m(v4) * m4);
+    float k4_h = dt * (alpha_h(v4) * (1.0f - h4) - beta_h(v4) * h4);
+    float k4_n = dt * (alpha_n(v4) * (1.0f - n4) - beta_n(v4) * n4);
+    
+    // Update state variables
+    v = v + (k1_v + 2.0f*k2_v + 2.0f*k3_v + k4_v) / 6.0f;
+    m = m + (k1_m + 2.0f*k2_m + 2.0f*k3_m + k4_m) / 6.0f;
+    h = h + (k1_h + 2.0f*k2_h + 2.0f*k3_h + k4_h) / 6.0f;
+    n = n + (k1_n + 2.0f*k2_n + 2.0f*k3_n + k4_n) / 6.0f;
+    
+    // Clamp values to valid ranges
+    if (m < 0.0f) m = 0.0f; else if (m > 1.0f) m = 1.0f;
+    if (h < 0.0f) h = 0.0f; else if (h > 1.0f) h = 1.0f;
+    if (n < 0.0f) n = 0.0f; else if (n > 1.0f) n = 1.0f;
+    
+    // Store updated values
+    neurons[idx].voltage = v;
+    neurons[idx].m = m;
+    neurons[idx].h = h;
+    neurons[idx].n = n;
+    
+    // Update compartment voltages
+    neurons[idx].voltages[0] = v;
 }
 
-/* Optional passive leak for multi-compartment models ----------------------- */
 __global__ void updateNeuronVoltages(GPUNeuronState* neurons,
-                                     const float*    I_leak,
-                                     const float*    Cm,
-                                     float           dt,
-                                     int             num_neurons)
-{
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    if (idx >= num_neurons) return;
-
-    neurons[idx].voltage += dt * (-I_leak[idx]) / Cm[idx];
+                                    float* I_leak, float* Cm,
+                                    float dt, int N) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= N) return;
+    
+    // Skip inactive neurons
+    if (neurons[idx].active == 0) return;
+    
+    // Simple voltage update for each compartment
+    for (int c = 0; c < neurons[idx].compartment_count; c++) {
+        float I_leak_val = (I_leak != nullptr) ? I_leak[idx * MAX_COMPARTMENTS + c] : neurons[idx].I_leak[c];
+        float Cm_val = (Cm != nullptr) ? Cm[idx * MAX_COMPARTMENTS + c] : neurons[idx].Cm[c];
+        
+        if (Cm_val > 0.0f) {
+            neurons[idx].voltages[c] += dt * I_leak_val / Cm_val;
+        }
+    }
+    
+    // Update main voltage
+    neurons[idx].voltage = neurons[idx].voltages[0];
 }

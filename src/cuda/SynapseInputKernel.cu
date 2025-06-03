@@ -1,40 +1,39 @@
-// SynapseInputKernel.cu — Fixed implementation file
-#include <cuda_runtime.h>
-#include <device_launch_parameters.h>
-#include "../../include/NeuroGen/GPUNeuralStructures.h"
 #include "../../include/NeuroGen/cuda/SynapseInputKernel.cuh"
+#include "../../include/NeuroGen/GPUNeuralStructures.h"
+#include "../../include/NeuroGen/cuda/GridBlockUtils.cuh"
+#include <cuda_runtime.h>
 
-__global__ void applySynapticCurrents(const GPUSynapse* synapses, 
-                                     int num_synapses, 
-                                     float* input_currents, 
-                                     const GPUNeuronState* neurons) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i >= num_synapses) return;
-
-    const GPUSynapse& syn = synapses[i];
-
-    // Check if presynaptic neuron has spiked
-    if (neurons[syn.pre_neuron_idx].spiked) {
-        atomicAdd(&input_currents[syn.post_neuron_idx], syn.weight);
-    }
-}
-
-__global__ void synapseInputKernel(GPUSynapse* synapses, 
-                                  GPUNeuronState* neurons, 
-                                  int num_synapses) {
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    if (idx < num_synapses) {
-        GPUSynapse& synapse = synapses[idx];
-        int pre_idx = synapse.pre_neuron_idx;
-        int post_idx = synapse.post_neuron_idx;
+__global__ void synapseInputKernel(GPUSynapse* synapses, GPUNeuronState* neurons, int num_synapses) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_synapses) return;
+    
+    GPUSynapse& synapse = synapses[idx];
+    
+    // Skip inactive synapses
+    if (synapse.active == 0) return;
+    
+    int pre_idx = synapse.pre_neuron_idx;
+    int post_idx = synapse.post_neuron_idx;
+    
+    // Check if presynaptic neuron spiked
+    if (neurons[pre_idx].spiked) {
+        // Record spike time for STDP
+        synapse.last_pre_spike_time = neurons[pre_idx].last_spike_time;
         
-        // Check if presynaptic neuron has spiked
-        if (neurons[pre_idx].spiked) {
-            // Apply synaptic weight to postsynaptic neuron voltage
-            atomicAdd(&neurons[post_idx].voltages[0], synapse.weight);
+        // Update activity metric
+        synapse.activity_metric = synapse.activity_metric * 0.99f + 0.01f;
+        
+        // Apply synaptic input to postsynaptic neuron
+        int compartment = synapse.post_compartment;
+        int receptor = synapse.receptor_index;
+        
+        // Ensure indices are valid
+        if (compartment >= 0 && compartment < MAX_COMPARTMENTS &&
+            receptor >= 0 && receptor < MAX_SYNAPTIC_RECEPTORS) {
             
-            // Update synapse activity for plasticity tracking
-            synapse.activity_metric += 1.0f;
+            // Add synaptic conductance (simplified model)
+            atomicAdd(&neurons[post_idx].receptor_conductances[compartment][receptor], 
+                     synapse.weight);
         }
     }
 }

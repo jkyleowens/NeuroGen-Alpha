@@ -1,51 +1,50 @@
-// NeuronSpikingKernels.cu – implementations
 #include "../../include/NeuroGen/cuda/NeuronSpikingKernels.cuh"
-#include <device_launch_parameters.h>
+#include "../../include/NeuroGen/GPUNeuralStructures.h"
+#include <cuda_runtime.h>
 
-/* ------------------------------------------------------------------------- */
-/* 1. Count how many neurons spiked                                           */
-/* ------------------------------------------------------------------------- */
 __global__ void countSpikesKernel(const GPUNeuronState* neurons,
-                                  int                  num_neurons,
-                                  int*                 spike_count)
-{
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+                                 int* spike_count, int num_neurons) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_neurons) return;
-
-    if (neurons[idx].spiked)
+    
+    if (neurons[idx].spiked) {
         atomicAdd(spike_count, 1);
+    }
 }
 
-/* ------------------------------------------------------------------------- */
-/* 2. Update per-neuron “spiked” flag from voltage                            */
-/* ------------------------------------------------------------------------- */
 __global__ void updateNeuronSpikes(GPUNeuronState* neurons,
-                                   int             num_neurons,
-                                   float           threshold)
-{
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+                                  float threshold, int num_neurons) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_neurons) return;
-
-    neurons[idx].spiked = (neurons[idx].voltage >= threshold);
+    
+    GPUNeuronState& neuron = neurons[idx];
+    
+    // Check for spike
+    if (neuron.voltage >= threshold && !neuron.spiked) {
+        neuron.spiked = true;
+    } else {
+        neuron.spiked = false;
+    }
 }
 
-/* ------------------------------------------------------------------------- */
-/* 3. Detect spikes and store events                                          */
-/* ------------------------------------------------------------------------- */
 __global__ void detectSpikes(const GPUNeuronState* neurons,
-                             GPUSpikeEvent*        spike_buffer,
-                             float                 threshold,
-                             int*                  spike_count,
-                             int                   num_neurons,
-                             float                 current_time)
-{
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+                            GPUSpikeEvent* spikes, float threshold,
+                            int* spike_count, int num_neurons, float current_time) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_neurons) return;
-
-    if (neurons[idx].voltage >= threshold)
-    {
-        int write_idx = atomicAdd(spike_count, 1);
-        spike_buffer[write_idx].neuron_index = idx;
-        spike_buffer[write_idx].spike_time   = current_time;
+    
+    const GPUNeuronState& neuron = neurons[idx];
+    
+    // Check for spike
+    if (neuron.voltage >= threshold) {
+        // Record spike event
+        int spike_idx = atomicAdd(spike_count, 1);
+        
+        // Ensure we don't overflow the spike buffer
+        if (spike_idx < num_neurons * 10) {
+            spikes[spike_idx].neuron_idx = idx;
+            spikes[spike_idx].time = current_time;
+            spikes[spike_idx].amplitude = 1.0f;
+        }
     }
 }
