@@ -1,5 +1,6 @@
 // CUDA Compatibility and type trait fixes
 #include <NeuroGen/cuda/CudaCompatibility.h>
+#include <NeuroGen/cuda/CudaUtils.h>
 
 #include "../../include/NeuroGen/cuda/KernelLaunchWrappers.cuh"
 #include "../../include/NeuroGen/cuda/NeuronUpdateKernel.cuh"

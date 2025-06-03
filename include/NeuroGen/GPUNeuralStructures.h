@@ -3,6 +3,9 @@
 
 #include <cuda_runtime.h>
 
+// Include other GPU structures
+#include "CorticalColumn.h"
+
 // Maximum number of compartments per neuron
 #define MAX_COMPARTMENTS 5
 // Maximum number of synaptic receptors per compartment
@@ -44,6 +47,7 @@ struct GPUSynapse {
     int active;                // Whether the synapse is active (1) or inactive (0)
     float last_pre_spike_time; // Time of last presynaptic spike
     float activity_metric;     // Metric of recent activity
+    float last_potentiation;   // Time of last potentiation
     int post_compartment;      // Target compartment on postsynaptic neuron
     int receptor_index;        // Target receptor type
 };

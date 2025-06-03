@@ -28,7 +28,7 @@
 #include <chrono>
 
 #ifdef USE_CUDA
-#include "Network.cuh"
+#include "NeuroGen/cuda/NetworkCUDA.cuh"
 #endif
 
 #include "Neuron.h"

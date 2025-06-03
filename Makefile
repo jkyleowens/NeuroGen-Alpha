@@ -67,6 +67,11 @@ headers:
 	@if [ -f "src/cuda/RandomStateInit.cuh" ]; then cp src/cuda/RandomStateInit.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
 	@if [ -f "src/cuda/GridBlockUtils.cuh" ]; then cp src/cuda/GridBlockUtils.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
 	@if [ -f "src/cuda/CorticalColumn.h" ]; then cp src/cuda/CorticalColumn.h $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/CudaCompatibility.h" ]; then cp src/cuda/CudaCompatibility.h $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/CudaUtils.h" ]; then cp src/cuda/CudaUtils.h $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/NetworkConfig.h" ]; then cp src/NetworkConfig.h $(INCLUDE_DIR)/NeuroGen/; fi
+	@if [ -f "src/NetworkPresets.h" ]; then cp src/NetworkPresets.h $(INCLUDE_DIR)/NeuroGen/; fi
+	@if [ -f "src/TopologyGenerator.h" ]; then cp src/TopologyGenerator.h $(INCLUDE_DIR)/NeuroGen/; fi
 	@echo "Headers copied to include directory"
 
 # Link all object files

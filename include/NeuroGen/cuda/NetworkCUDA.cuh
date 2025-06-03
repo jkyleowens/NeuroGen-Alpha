@@ -4,10 +4,11 @@
 
 #include <vector>
 #include <random>
+#include <chrono>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <NeuroGen/GPUNeuralStructures.h>
-#include "../NetworkConfig.h"
+#include <NeuroGen/NetworkConfig.h>
 
 // Main interface functions for the neural network
 extern "C" {

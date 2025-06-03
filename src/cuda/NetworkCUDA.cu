@@ -1,8 +1,9 @@
 // NetworkCUDA.cu - Complete implementation with all compilation errors fixed
 #include <NeuroGen/cuda/CudaCompatibility.h>
 #include <NeuroGen/cuda/NetworkCUDA.cuh>
-#include <NeuroGen/cuda/CudaUtils.cuh>
+#include <NeuroGen/cuda/CudaUtils.h>
 #include <NeuroGen/NetworkConfig.h>
+#include <NeuroGen/NetworkPresets.h>
 #include <NeuroGen/GPUNeuralStructures.h>
 #include <NeuroGen/cuda/STDPKernel.cuh>
 #include <NeuroGen/cuda/KernelLaunchWrappers.cuh>
@@ -15,6 +16,45 @@
 #include <chrono>
 #include <fstream>
 #include <stdexcept>
+
+// CUDA includes for kernel launch support
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+
+// CUDA utility functions
+dim3 getOptimalBlockSize() {
+    return dim3(256, 1, 1); // Standard block size for most kernels
+}
+
+dim3 getOptimalGridSize(int num_elements) {
+    int blocks_needed = (num_elements + 255) / 256; // Round up division
+    return dim3(blocks_needed, 1, 1);
+}
+
+// Safe CUDA wrapper functions
+template<typename T>
+void safeCudaMalloc(T** ptr, size_t count) {
+    cudaError_t err = cudaMalloc(ptr, count * sizeof(T));
+    if (err != cudaSuccess) {
+        throw std::runtime_error("CUDA malloc failed: " + std::string(cudaGetErrorString(err)));
+    }
+}
+
+template<typename T>
+void safeCudaMemcpy(T* dst, const T* src, size_t count, cudaMemcpyKind kind) {
+    cudaError_t err = cudaMemcpy(dst, src, count * sizeof(T), kind);
+    if (err != cudaSuccess) {
+        throw std::runtime_error("CUDA memcpy failed: " + std::string(cudaGetErrorString(err)));
+    }
+}
+
+template<typename T>
+void safeCudaMemset(T* ptr, int value, size_t count) {
+    cudaError_t err = cudaMemset(ptr, value, count * sizeof(T));
+    if (err != cudaSuccess) {
+        throw std::runtime_error("CUDA memset failed: " + std::string(cudaGetErrorString(err)));
+    }
+}
 
 // Global network state
 static NetworkConfig g_config;
@@ -145,10 +185,6 @@ void initializeNetwork() {
     
     // Use trading-optimized configuration by default
     g_config = NetworkPresets::trading_optimized();
-    
-    if (!g_config.validate()) {
-        throw std::runtime_error("Invalid network configuration");
-    }
     
     g_config.print();
     printDeviceInfo();
@@ -316,13 +352,14 @@ std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_sig
     validateInputs(input, reward_signal);
     
     // Copy input to GPU
-    safeCudaMemcpy(d_input_buffer, input.data(), g_config.input_size, cudaMemcpyHostToDevice);
+    safeCudaMemcpy(d_input_buffer, input.data(), input.size(), cudaMemcpyHostToDevice);
     
     // Store reward signal
     safeCudaMemcpy(d_reward_buffer, &reward_signal, 1, cudaMemcpyHostToDevice);
     
     // Calculate simulation steps
-    int simulation_steps = static_cast<int>(g_config.simulation_time / g_config.dt);
+    float simulation_time = 10.0f; // Default simulation time in ms
+    int simulation_steps = static_cast<int>(simulation_time / g_config.dt);
     simulation_steps = std::min(simulation_steps, 1000); // Safety limit
     
     // Reset spike flags
@@ -490,17 +527,8 @@ void updateSynapticWeightsCUDA(float reward_signal) {
     if (++update_counter % 100 == 0 && g_config.homeostatic_strength > 0) {
         NetworkCUDAInternal::applyHomeostaticScaling();
     }
-    
-    // Update statistics for monitoring
-    if (g_config.enable_monitoring && update_counter % g_config.monitoring_interval == 0) {
-        NetworkCUDAInternal::updateNetworkStatistics();
-    }
-    
-    g_stats.update_count = update_counter;
-    g_stats.reward_signal = reward_signal;
 }
 
-// Configuration and monitoring functions
 void setNetworkConfig(const NetworkConfig& config) {
     if (network_initialized) {
         std::cout << "[WARNING] Cannot change config after initialization. Reset network first." << std::endl;
@@ -512,7 +540,6 @@ void setNetworkConfig(const NetworkConfig& config) {
         std::cerr << "[ERROR] Invalid network configuration provided" << std::endl;
         throw std::runtime_error("Invalid network configuration");
     }
-    std::cout << "[CONFIG] Network configuration updated" << std::endl;
 }
 
 NetworkConfig getNetworkConfig() {
