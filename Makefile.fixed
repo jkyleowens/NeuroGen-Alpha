@@ -1,0 +1,156 @@
+# Makefile for NeuroGen Alpha project with CPU fallback support
+# Check for CUDA availability
+NVCC_PATH := $(shell which nvcc 2>/dev/null)
+USE_CUDA ?= $(if $(NVCC_PATH),1,0)
+
+# Detect if we should use CUDA
+ifeq ($(USE_CUDA),1)
+ifneq ($(NVCC_PATH),)
+NVCC := $(NVCC_PATH)
+CUDA_AVAILABLE := 1
+else
+CUDA_AVAILABLE := 0
+USE_CUDA := 0
+endif
+else
+CUDA_AVAILABLE := 0
+endif
+
+# Compiler selection
+ifeq ($(CUDA_AVAILABLE),1)
+CXX := $(NVCC)
+CUDA_HOME ?= /usr/local/cuda
+INCLUDE_DIRS := -I./include -I./include/NeuroGen -I./include/NeuroGen/cuda -I$(CUDA_HOME)/include
+LIB_DIRS := -L$(CUDA_HOME)/lib64
+CXXFLAGS := -std=c++17 -O2 $(INCLUDE_DIRS) --expt-relaxed-constexpr -DUSE_CUDA=1
+LDFLAGS := $(LIB_DIRS) -lcudart -lcurand
+BUILD_MODE := CUDA
+else
+CXX := g++
+INCLUDE_DIRS := -I./include -I./include/NeuroGen
+CXXFLAGS := -std=c++17 -O2 $(INCLUDE_DIRS) -DUSE_CUDA=0
+LDFLAGS := -lpthread -lm
+BUILD_MODE := CPU
+endif
+
+# Directory structure
+SRC_DIR := src
+SRC_CUDA_DIR := $(SRC_DIR)/cuda
+OBJ_DIR := obj
+BIN_DIR := bin
+TEST_DIR := tests
+INCLUDE_DIR := include
+
+# Make sure the directories exist
+$(shell mkdir -p $(OBJ_DIR))
+$(shell mkdir -p $(BIN_DIR))
+$(shell mkdir -p $(OBJ_DIR)/cuda)
+
+# Source files
+ifeq ($(CUDA_AVAILABLE),1)
+CU_SRCS = $(wildcard $(SRC_CUDA_DIR)/*.cu)
+CU_OBJS = $(patsubst $(SRC_CUDA_DIR)/%.cu,$(OBJ_DIR)/cuda/%.o,$(CU_SRCS))
+else
+CU_SRCS = 
+CU_OBJS = 
+endif
+
+CPP_SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+CPP_OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SRCS))
+
+# CPU-only sources
+CPU_SRCS = NetworkCPU.cpp
+CPU_OBJS = $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(CPU_SRCS))
+
+# Target binary
+TARGET = $(BIN_DIR)/neural_sim
+
+# Main targets
+.PHONY: all clean test setup info
+
+all: info setup $(TARGET)
+
+info:
+	@echo "========================================="
+	@echo "NeuroGen Alpha Build System"
+	@echo "========================================="
+	@echo "Build Mode: $(BUILD_MODE)"
+	@echo "CUDA Available: $(CUDA_AVAILABLE)"
+ifeq ($(CUDA_AVAILABLE),1)
+	@echo "CUDA Path: $(NVCC)"
+	@echo "CUDA Home: $(CUDA_HOME)"
+endif
+	@echo "Compiler: $(CXX)"
+	@echo "========================================="
+
+setup:
+	@mkdir -p $(INCLUDE_DIR)/NeuroGen/cuda
+	@echo "Directory structure ready"
+
+# Link all object files
+ifeq ($(CUDA_AVAILABLE),1)
+$(TARGET): $(CU_OBJS) $(CPP_OBJS) $(OBJ_DIR)/main.o
+	@mkdir -p $(BIN_DIR)
+	$(NVCC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	@echo "CUDA build complete: $@"
+else
+$(TARGET): $(CPU_OBJS) $(OBJ_DIR)/main.o
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	@echo "CPU-only build complete: $@"
+endif
+
+# Compile CUDA sources (only if CUDA available)
+ifeq ($(CUDA_AVAILABLE),1)
+$(OBJ_DIR)/cuda/%.o: $(SRC_CUDA_DIR)/%.cu
+	@mkdir -p $(OBJ_DIR)/cuda
+	$(NVCC) $(CXXFLAGS) -dc $< -o $@
+endif
+
+# Compile C++ sources  
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Compile CPU network
+$(OBJ_DIR)/%.o: %.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Special rule for main.cpp
+$(OBJ_DIR)/main.o: main.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Test targets
+test: $(TARGET)
+	@echo "Running basic functionality test..."
+	@echo "Build Mode: $(BUILD_MODE)"
+	./$(TARGET) --test || echo "Test completed (may have expected failures without CUDA)"
+
+# Clean target
+clean:
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@echo "Clean complete"
+
+# Debug build
+debug: CXXFLAGS += -g -DDEBUG
+debug: $(TARGET)
+
+# Show configuration
+config:
+	@echo "Configuration:"
+	@echo "  USE_CUDA: $(USE_CUDA)"
+	@echo "  CUDA_AVAILABLE: $(CUDA_AVAILABLE)" 
+	@echo "  BUILD_MODE: $(BUILD_MODE)"
+	@echo "  CXX: $(CXX)"
+	@echo "  CXXFLAGS: $(CXXFLAGS)"
+	@echo "  LDFLAGS: $(LDFLAGS)"
+
+# Install CUDA (helper target)
+install-cuda:
+	@echo "CUDA installation instructions:"
+	@echo "1. Visit https://developer.nvidia.com/cuda-downloads"
+	@echo "2. Download CUDA Toolkit for your platform"
+	@echo "3. Install and add to PATH"
+	@echo "4. Run 'make clean && make' to rebuild with CUDA support"

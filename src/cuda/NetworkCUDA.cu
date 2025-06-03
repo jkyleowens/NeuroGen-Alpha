@@ -1,10 +1,11 @@
 // NetworkCUDA.cu - Complete implementation with all compilation errors fixed
-#include "NetworkCUDA.cuh"
-#include "../../include/NeuroGen/cuda/CudaUtils.cuh"
-#include "../../include/NeuroGen/NetworkConfig.h"
-#include "GPUNeuralStructures.h"
-#include "STDPKernel.cuh"
-#include "KernelLaunchWrappers.cuh"
+#include <NeuroGen/cuda/CudaCompatibility.h>
+#include <NeuroGen/cuda/NetworkCUDA.cuh>
+#include <NeuroGen/cuda/CudaUtils.cuh>
+#include <NeuroGen/NetworkConfig.h>
+#include <NeuroGen/GPUNeuralStructures.h>
+#include <NeuroGen/cuda/STDPKernel.cuh>
+#include <NeuroGen/cuda/KernelLaunchWrappers.cuh>
 
 #include <iostream>
 #include <vector>

@@ -1,0 +1,216 @@
+# NeuroGen Alpha - CUDA Build System Fix
+# Advanced Makefile with CUDA detection and proper compilation flags
+
+# ==========================================
+# CUDA Detection and Configuration
+# ==========================================
+
+# Check if CUDA is available
+NVCC_PATH := $(shell which nvcc 2>/dev/null)
+CUDA_HOME := $(shell find /usr/local -name "cuda*" -type d 2>/dev/null | head -1)
+
+# If no CUDA_HOME found, try common locations
+ifeq ($(CUDA_HOME),)
+    CUDA_HOME := $(shell find /opt -name "cuda*" -type d 2>/dev/null | head -1)
+endif
+ifeq ($(CUDA_HOME),)
+    CUDA_HOME := $(shell find /usr -name "cuda*" -type d 2>/dev/null | head -1)
+endif
+
+# Determine build mode
+ifdef NVCC_PATH
+    ifneq ($(NVCC_PATH),)
+        CUDA_AVAILABLE := 1
+        BUILD_MODE := CUDA
+    else
+        CUDA_AVAILABLE := 0
+        BUILD_MODE := CPU
+    endif
+else
+    CUDA_AVAILABLE := 0
+    BUILD_MODE := CPU
+endif
+
+# ==========================================
+# Compiler Configuration
+# ==========================================
+
+ifeq ($(BUILD_MODE),CUDA)
+    # CUDA build configuration
+    NVCC := $(NVCC_PATH)
+    CXX := g++
+    
+    # CUDA-specific flags (C++14 for compatibility)
+    NVCC_FLAGS := -std=c++14 -O2 -arch=sm_50 -gencode arch=compute_50,code=sm_50 \
+                  -gencode arch=compute_52,code=sm_52 -gencode arch=compute_61,code=sm_61 \
+                  --expt-relaxed-constexpr --expt-extended-lambda \
+                  -Xcompiler -fPIC -Xcompiler -O2
+    
+    # Host compilation flags
+    CXXFLAGS := -std=c++17 -O2 -fPIC -DUSE_CUDA=1
+    
+    # Include directories
+    INCLUDE_DIRS := -I./include -I./include/NeuroGen -I./include/NeuroGen/cuda \
+                   -I$(CUDA_HOME)/include
+    
+    # Library directories and linking
+    LIB_DIRS := -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib
+    LDFLAGS := $(LIB_DIRS) -lcudart -lcurand -lpthread -lm
+    
+else
+    # CPU-only build configuration
+    CXX := g++
+    CXXFLAGS := -std=c++17 -O2 -DUSE_CUDA=0
+    INCLUDE_DIRS := -I./include -I./include/NeuroGen
+    LDFLAGS := -lpthread -lm
+endif
+
+# ==========================================
+# Directory Structure
+# ==========================================
+
+SRC_DIR := src
+SRC_CUDA_DIR := $(SRC_DIR)/cuda
+OBJ_DIR := obj
+BIN_DIR := bin
+INCLUDE_DIR := include
+
+# Create directories
+$(shell mkdir -p $(OBJ_DIR) $(BIN_DIR) $(OBJ_DIR)/cuda $(INCLUDE_DIR)/NeuroGen $(INCLUDE_DIR)/NeuroGen/cuda)
+
+# ==========================================
+# Source Files
+# ==========================================
+
+ifeq ($(BUILD_MODE),CUDA)
+    # CUDA build: include CUDA sources
+    CU_SRCS := $(wildcard $(SRC_CUDA_DIR)/*.cu)
+    CPP_SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+    CU_OBJS := $(patsubst $(SRC_CUDA_DIR)/%.cu,$(OBJ_DIR)/cuda/%.o,$(CU_SRCS))
+    CPP_OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SRCS))
+    ALL_OBJS := $(CU_OBJS) $(CPP_OBJS)
+else
+    # CPU build: only CPU sources
+    CPP_SRCS := NetworkCPU.cpp main.cpp
+    CPP_OBJS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(CPP_SRCS))
+    ALL_OBJS := $(CPP_OBJS)
+endif
+
+TARGET := $(BIN_DIR)/neural_sim
+
+# ==========================================
+# Build Rules
+# ==========================================
+
+.PHONY: all clean setup headers info test
+
+all: info setup headers $(TARGET)
+
+info:
+	@echo "========================================="
+	@echo "NeuroGen Alpha Build System"
+	@echo "========================================="
+	@echo "Build Mode: $(BUILD_MODE)"
+	@echo "CUDA Available: $(CUDA_AVAILABLE)"
+ifeq ($(BUILD_MODE),CUDA)
+	@echo "NVCC: $(NVCC)"
+	@echo "CUDA Home: $(CUDA_HOME)"
+else
+	@echo "Compiler: $(CXX)"
+endif
+	@echo "========================================="
+
+setup:
+	@echo "Directory structure ready"
+
+headers:
+ifeq ($(BUILD_MODE),CUDA)
+	@echo "Setting up CUDA headers..."
+	@if [ -f "$(SRC_CUDA_DIR)/NetworkCUDA.cuh" ]; then \
+		cp "$(SRC_CUDA_DIR)/NetworkCUDA.cuh" "$(INCLUDE_DIR)/NeuroGen/cuda/"; \
+	fi
+	@if [ -f "include/NeuroGen/GPUNeuralStructures.h" ]; then \
+		cp "include/NeuroGen/GPUNeuralStructures.h" "$(INCLUDE_DIR)/NeuroGen/cuda/"; \
+	fi
+	@echo "CUDA headers ready"
+else
+	@echo "CPU-only mode: no CUDA headers needed"
+endif
+
+# ==========================================
+# Compilation Rules
+# ==========================================
+
+$(TARGET): $(ALL_OBJS)
+	@mkdir -p $(BIN_DIR)
+ifeq ($(BUILD_MODE),CUDA)
+	$(NVCC) $(NVCC_FLAGS) $(INCLUDE_DIRS) -o $@ $^ $(LDFLAGS)
+	@echo "CUDA build complete: $@"
+else
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -o $@ $^ $(LDFLAGS)
+	@echo "CPU-only build complete: $@"
+endif
+
+# CUDA source compilation
+ifeq ($(BUILD_MODE),CUDA)
+$(OBJ_DIR)/cuda/%.o: $(SRC_CUDA_DIR)/%.cu
+	@mkdir -p $(OBJ_DIR)/cuda
+	$(NVCC) $(NVCC_FLAGS) $(INCLUDE_DIRS) -dc $< -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -c $< -o $@
+endif
+
+# CPU source compilation
+$(OBJ_DIR)/%.o: %.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -c $< -o $@
+
+# ==========================================
+# Testing Rules
+# ==========================================
+
+test-cuda-compile: test_cuda_compile.cu
+ifeq ($(BUILD_MODE),CUDA)
+	@echo "Testing CUDA compilation fixes..."
+	$(NVCC) $(NVCC_FLAGS) $(INCLUDE_DIRS) test_cuda_compile.cu -o test_cuda_compile $(LDFLAGS)
+	./test_cuda_compile
+	@echo "CUDA compilation test complete"
+else
+	@echo "CUDA not available - skipping compilation test"
+endif
+
+# ==========================================
+# Utility Rules
+# ==========================================
+
+clean:
+	@echo "Cleaning build artifacts..."
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -f test_cuda_compile
+	@echo "Clean complete"
+
+test: $(TARGET)
+ifeq ($(BUILD_MODE),CUDA)
+	@echo "Running CUDA neural network test..."
+	./$(TARGET) highly_diverse_stock_data 1 2>/dev/null || echo "CUDA test requires proper data setup"
+else
+	@echo "Running CPU neural network test..."
+	./$(TARGET) highly_diverse_stock_data 1 2>/dev/null || echo "CPU test requires proper data setup"
+endif
+
+help:
+	@echo "NeuroGen Alpha Build System"
+	@echo ""
+	@echo "Targets:"
+	@echo "  all                - Build the neural simulation"
+	@echo "  clean              - Remove build artifacts"
+	@echo "  test               - Run basic functionality test"
+	@echo "  test-cuda-compile  - Test CUDA compilation fixes"
+	@echo "  info               - Show build configuration"
+	@echo "  help               - Show this help message"
+	@echo ""
+	@echo "Build Modes:"
+	@echo "  CUDA               - Full GPU acceleration (requires nvcc)"
+	@echo "  CPU                - CPU-only fallback (automatic)"

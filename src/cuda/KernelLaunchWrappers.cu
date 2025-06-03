@@ -1,3 +1,6 @@
+// CUDA Compatibility and type trait fixes
+#include <NeuroGen/cuda/CudaCompatibility.h>
+
 #include "../../include/NeuroGen/cuda/KernelLaunchWrappers.cuh"
 #include "../../include/NeuroGen/cuda/NeuronUpdateKernel.cuh"
 #include "../../include/NeuroGen/cuda/NeuronSpikingKernels.cuh"
@@ -22,8 +25,8 @@ extern "C" void launchUpdateNeuronVoltages(GPUNeuronState* neurons, float* I_lea
 }
 
 void launchNeuronUpdateKernel(GPUNeuronState* neurons, float dt, int N) {
-    dim3 block = makeBlock();
-    dim3 grid = makeGrid(N);
+    dim3 block = makeSafeBlock(256);
+    dim3 grid = makeSafeGrid(N, 256);
     rk4NeuronUpdateKernel<<<grid, block>>>(neurons, dt, N);
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
@@ -44,8 +47,8 @@ extern "C" void launchSynapseInputKernel(GPUSynapse* d_synapses, GPUNeuronState*
 }
 
 void launchRandomStateInit(curandState* d_states, int num_states, unsigned long seed) {
-    dim3 block = makeBlock();
-    dim3 grid = makeGrid(num_states);
+    dim3 block = makeSafeBlock(256);
+    dim3 grid = makeSafeGrid(num_states, 256);
     initializeRandomStates<<<grid, block>>>(d_states, num_states, seed);
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
@@ -55,8 +58,8 @@ void launchRandomStateInit(curandState* d_states, int num_states, unsigned long 
 }
 
 void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt) {
-    dim3 block = makeBlock();
-    dim3 grid = makeGrid(N);
+    dim3 block = makeSafeBlock(256);
+    dim3 grid = makeSafeGrid(N, 256);
     rk4NeuronUpdateKernel<<<grid, block>>>(neurons, dt, N);
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
@@ -67,8 +70,8 @@ void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt) {
 
 void launchSpikeDetectionKernel(GPUNeuronState* neurons, GPUSpikeEvent* spikes, float threshold,
                                 int* spike_count, int num_neurons, float current_time) {
-    dim3 block = makeBlock();
-    dim3 grid = makeGrid(num_neurons);
+    dim3 block = makeSafeBlock(256);
+    dim3 grid = makeSafeGrid(num_neurons, 256);
     detectSpikes<<<grid, block>>>(neurons, spikes, threshold, spike_count, num_neurons, current_time);
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {

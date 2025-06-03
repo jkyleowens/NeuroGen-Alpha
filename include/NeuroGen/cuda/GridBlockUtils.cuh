@@ -2,6 +2,7 @@
 #define GRID_BLOCK_UTILS_CUH
 
 #include <cuda_runtime.h>
+#include <NeuroGen/cuda/CudaCompatibility.h>
 
 /**
  * Creates a standard CUDA block dimension for kernel launches

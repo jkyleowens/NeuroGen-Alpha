@@ -11,7 +11,24 @@
 #include <chrono>
 #include <cmath>
 
-#include "src/cuda/NetworkCUDA.cuh"
+#if USE_CUDA
+#include <NeuroGen/cuda/NetworkCUDA.cuh>
+#else
+#include "NetworkCPU.h"
+#endif
+
+// Forward declarations for the CUDA interface functions
+#if USE_CUDA
+extern "C" {
+    void initializeNetwork();
+    std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal);
+    void updateSynapticWeightsCUDA(float reward_signal);
+    void cleanupNetwork();
+    void setNetworkConfig(const NetworkConfig& config);
+    NetworkConfig getNetworkConfig();
+    void printNetworkStats();
+}
+#endif
 
 // Enhanced Portfolio Management System
 class TradingPortfolio {
@@ -399,9 +416,15 @@ int main(int argc, char* argv[]) {
         TradingPortfolio portfolio;
         FeatureEngineer feature_engineer;
         
-        // Initialize neural network
+        // Initialize neural network (CPU or CUDA based on compilation)
+#if USE_CUDA
         std::cout << "[INIT] Initializing CUDA neural network..." << std::endl;
         initializeNetwork();
+#else
+        std::cout << "[INIT] Initializing CPU neural network..." << std::endl;
+        NetworkConfig config;
+        NetworkCPU network(config);
+#endif
         
         // Random number generation for file shuffling
         std::random_device rd;
@@ -445,7 +468,11 @@ int main(int argc, char* argv[]) {
                     
                     // Neural network forward pass
                     auto start_forward = std::chrono::high_resolution_clock::now();
+#if USE_CUDA
                     auto raw_outputs = forwardCUDA(features, reward);
+#else
+                    auto raw_outputs = network.forward(features, reward);
+#endif
                     auto end_forward = std::chrono::high_resolution_clock::now();
                     
                     // Make trading decision
@@ -460,7 +487,11 @@ int main(int argc, char* argv[]) {
                     
                     // Update neural network
                     auto start_learning = std::chrono::high_resolution_clock::now();
+#if USE_CUDA
                     updateSynapticWeightsCUDA(reward);
+#else
+                    network.updateWeights(reward);
+#endif
                     auto end_learning = std::chrono::high_resolution_clock::now();
                     
                     total_decisions++;
@@ -508,13 +539,17 @@ int main(int argc, char* argv[]) {
         portfolio.printSummary();
         
         // Cleanup
+#if USE_CUDA
         cleanupNetwork();
+#endif
         
         return 0;
         
     } catch (const std::exception& e) {
         std::cerr << "[FATAL ERROR] " << e.what() << std::endl;
+#if USE_CUDA
         cleanupNetwork();
+#endif
         return 1;
     }
 }

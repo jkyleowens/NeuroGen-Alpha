@@ -1,0 +1,49 @@
+# Simple CUDA Test Makefile
+# Tests if our CUDA compilation fixes work
+
+# Basic setup
+NVCC_CHECK := $(shell which nvcc 2>/dev/null)
+ifneq ($(NVCC_CHECK),)
+    HAS_CUDA := 1
+    BUILD_MODE := CUDA
+else
+    HAS_CUDA := 0
+    BUILD_MODE := CPU
+endif
+
+.PHONY: info test-compile clean
+
+info:
+	@echo "=== CUDA Compilation Test ==="
+	@echo "Build Mode: $(BUILD_MODE)"
+	@echo "NVCC Available: $(HAS_CUDA)"
+ifneq ($(NVCC_CHECK),)
+	@echo "NVCC Path: $(NVCC_CHECK)"
+endif
+	@echo "============================="
+
+test-compile:
+ifneq ($(NVCC_CHECK),)
+	@echo "Testing CUDA compilation with fixes..."
+	nvcc -std=c++14 -O2 --expt-relaxed-constexpr \
+		-I./include -I./include/NeuroGen/cuda \
+		test_cuda_compile.cu -o test_cuda_compile
+	@echo "CUDA compilation test: SUCCESS"
+	./test_cuda_compile
+else
+	@echo "NVCC not available - using CPU-only build"
+	g++ -std=c++17 -O2 -DUSE_CUDA=0 \
+		-I./include -I./include/NeuroGen \
+		NetworkCPU.cpp main.cpp -o bin/neural_sim_test -lpthread -lm
+	@echo "CPU compilation test: SUCCESS"
+endif
+
+clean:
+	rm -f test_cuda_compile bin/neural_sim_test
+
+help:
+	@echo "Simple CUDA Test Makefile"
+	@echo "Targets:"
+	@echo "  info         - Show build configuration"
+	@echo "  test-compile - Test compilation with CUDA fixes"
+	@echo "  clean        - Remove test binaries"
