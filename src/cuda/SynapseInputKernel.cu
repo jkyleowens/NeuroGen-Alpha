@@ -1,3 +1,5 @@
+// SynapseInputKernel.cu — Fixed implementation file
+#include <NeuroGen/cuda/CudaCompatibility.h>
 #include "../../include/NeuroGen/cuda/SynapseInputKernel.cuh"
 #include "../../include/NeuroGen/GPUNeuralStructures.h"
 #include "../../include/NeuroGen/cuda/GridBlockUtils.cuh"

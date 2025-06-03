@@ -172,4 +172,6 @@
     }
 #endif
 
+#include <cstdio>
+
 #endif // CUDA_COMPATIBILITY_H

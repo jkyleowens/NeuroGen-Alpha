@@ -121,6 +121,9 @@ endif
 	@echo "========================================="
 
 setup:
+	@echo "Setting up directory structure..."
+	@mkdir -p $(OBJ_DIR) $(BIN_DIR) $(OBJ_DIR)/cuda
+	@mkdir -p $(INCLUDE_DIR)/NeuroGen $(INCLUDE_DIR)/NeuroGen/cuda
 	@echo "Directory structure ready"
 
 headers:
@@ -132,6 +135,15 @@ ifeq ($(BUILD_MODE),CUDA)
 	@if [ -f "include/NeuroGen/GPUNeuralStructures.h" ]; then \
 		cp "include/NeuroGen/GPUNeuralStructures.h" "$(INCLUDE_DIR)/NeuroGen/cuda/"; \
 	fi
+	@if [ -f "include/NeuroGen/cuda/CudaCompatibility.h" ]; then \
+		cp "include/NeuroGen/cuda/CudaCompatibility.h" "$(INCLUDE_DIR)/NeuroGen/cuda/"; \
+	fi
+	@echo "Copying additional CUDA kernel headers..."
+	@for header in KernelLaunchWrappers.cuh NeuronUpdateKernel.cuh NeuronSpikingKernels.cuh SynapseInputKernel.cuh STDPKernel.cuh RandomStateInit.cuh GridBlockUtils.cuh; do \
+		if [ -f "include/NeuroGen/cuda/$$header" ]; then \
+			cp "include/NeuroGen/cuda/$$header" "$(INCLUDE_DIR)/NeuroGen/cuda/"; \
+		fi; \
+	done
 	@echo "CUDA headers ready"
 else
 	@echo "CPU-only mode: no CUDA headers needed"
