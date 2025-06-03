@@ -63,12 +63,4 @@ void launchSpikeDetectionKernel(GPUNeuronState* neurons,
                                int num_neurons, 
                                float current_time);
 
-/**
- * Launch kernel to initialize random states
- * @param d_states Array of curandState to initialize
- * @param num_states Number of states to initialize
- * @param seed Random seed value
- */
-void launchRandomStateInit(curandState* d_states, int num_states, unsigned long seed);
-
 #endif // KERNEL_LAUNCH_WRAPPERS_CUH

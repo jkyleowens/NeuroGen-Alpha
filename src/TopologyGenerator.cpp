@@ -1,5 +1,6 @@
 #include "TopologyGenerator.h"
 #include <algorithm>
+#include <climits>
 #include <numeric>
 #include <iostream>
 #include <stdexcept>
@@ -23,7 +24,7 @@ void TopologyGenerator::buildLocalLoops(std::vector<GPUSynapse>& synapses,
 
     const int fanOut = cfg_.localFanOut;
     const int colSize = cfg_.neuronsPerColumn;
-    const int excCut = static_cast<int>(cfg_.excRatio * colSize);
+    const int excCut = static_cast<int>(cfg_.exc_ratio * colSize);
 
     for (const auto& col : columns) {
         for (int n = col.neuron_start; n < col.neuron_end; ++n) {
@@ -212,7 +213,7 @@ void TopologyGenerator::printTopologyStats(const std::vector<GPUSynapse>& synaps
 // Private helper functions
 bool TopologyGenerator::isExcitatoryNeuron(int neuron_idx, const GPUCorticalColumn& column) const {
     int relative_idx = neuron_idx - column.neuron_start;
-    int excitatory_count = static_cast<int>(cfg_.excRatio * cfg_.neuronsPerColumn);
+    int excitatory_count = static_cast<int>(cfg_.exc_ratio * cfg_.neuronsPerColumn);
     return relative_idx < excitatory_count;
 }
 

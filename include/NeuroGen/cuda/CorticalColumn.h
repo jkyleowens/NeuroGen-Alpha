@@ -1,15 +1,15 @@
 #ifndef GPU_CORTICAL_COLUMN_H
 #define GPU_CORTICAL_COLUMN_H
 
+// For CUDA compilation, include the full CUDA version
+// For non-CUDA, this file is empty and we use forward declarations from GPUStructuresFwd.h
+#ifdef __CUDACC__
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 
 /**
  * GPU-optimized structure for cortical column organization
- * 
- * A cortical column is a structural and functional unit of neurons
- * that process information together. This structure defines the
- * memory layout and organization for GPU-based neural simulation.
+ * Only compiled when CUDA is available
  */
 struct GPUCorticalColumn {
     // Neuron range within the global neuron array
@@ -108,8 +108,8 @@ __host__ __device__ inline int getRelativeNeuronIndex(
     return global_neuron_idx - column->neuron_start;
 }
 
-#ifdef __cplusplus
 }
-#endif
+
+#endif // __CUDACC__
 
 #endif // GPU_CORTICAL_COLUMN_H

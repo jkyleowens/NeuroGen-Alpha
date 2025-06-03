@@ -2,8 +2,7 @@
 #define TOPOLOGY_GENERATOR_H
 
 #include "NetworkConfig.h"
-#include "cuda/GPUNeuralStructures.h"
-#include "GPUCorticalColumnFwd.h"
+#include "GPUStructuresFwd.h"
 
 #include <vector>
 #include <random>
@@ -34,7 +33,7 @@ public:
 
 private:
     const NetworkConfig& cfg_;
-    std::mt19937 rng_;
+    mutable std::mt19937 rng_;
 
     bool isExcitatoryNeuron(int neuron_idx, const GPUCorticalColumn& column) const;
     float generateSynapticWeight(bool is_excitatory) const;

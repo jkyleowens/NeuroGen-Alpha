@@ -4,9 +4,11 @@
 #include <iostream>
 #include <string>
 #include <cstddef>
+#ifdef __CUDACC__
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <curand_kernel.h>
+#endif
 
 /**
  * @brief Network configuration parameters
@@ -197,23 +199,5 @@ struct NetworkConfigCUDA : public NetworkConfig {
                ", device_id=" + std::to_string(cuda_device_id);
     }
 };
-
-// Add missing utility function
-void printDeviceInfo() {
-    int deviceCount;
-    cudaGetDeviceCount(&deviceCount);
-    
-    if (deviceCount == 0) {
-        std::cout << "[CUDA] No CUDA devices found" << std::endl;
-        return;
-    }
-    
-    cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, 0);
-    
-    std::cout << "[CUDA] Using device: " << prop.name << std::endl;
-    std::cout << "[CUDA] Compute capability: " << prop.major << "." << prop.minor << std::endl;
-    std::cout << "[CUDA] Global memory: " << prop.totalGlobalMem / (1024*1024) << " MB" << std::endl;
-}
 
 #endif // NEUROGENALPHA_NETWORKCONFIG_H

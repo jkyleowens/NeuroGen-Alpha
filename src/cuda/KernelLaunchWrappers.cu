@@ -47,17 +47,6 @@ extern "C" void launchSynapseInputKernel(GPUSynapse* d_synapses, GPUNeuronState*
     cudaDeviceSynchronize();
 }
 
-void launchRandomStateInit(curandState* d_states, int num_states, unsigned long seed) {
-    dim3 block = makeSafeBlock(256);
-    dim3 grid = makeSafeGrid(num_states, 256);
-    initializeRandomStates<<<grid, block>>>(d_states, num_states, seed);
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        // Handle error appropriately
-    }
-    cudaDeviceSynchronize();
-}
-
 void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt) {
     dim3 block = makeSafeBlock(256);
     dim3 grid = makeSafeGrid(N, 256);

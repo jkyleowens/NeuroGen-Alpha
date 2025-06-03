@@ -7,6 +7,7 @@
 #include <NeuroGen/GPUNeuralStructures.h>
 #include <NeuroGen/cuda/STDPKernel.cuh>
 #include <NeuroGen/cuda/KernelLaunchWrappers.cuh>
+#include <NeuroGen/cuda/RandomStateInit.cuh>
 
 #include <iostream>
 #include <vector>
@@ -187,7 +188,6 @@ void initializeNetwork() {
     g_config = NetworkPresets::trading_optimized();
     
     g_config.print();
-    printDeviceInfo();
     
     // Calculate network dimensions
     total_neurons = g_config.input_size + g_config.hidden_size + g_config.output_size;
