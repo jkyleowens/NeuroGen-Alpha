@@ -603,6 +603,10 @@ void printNetworkStats() {
     std::cout << "=========================" << std::endl;
 }
 
+NetworkStats getNetworkStats() {
+    return g_stats;
+}
+
 // Advanced features
 void saveNetworkState(const std::string& filename) {
     if (!network_initialized) {

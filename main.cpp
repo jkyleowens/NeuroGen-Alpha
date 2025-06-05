@@ -406,6 +406,11 @@ int main(int argc, char* argv[]) {
         // Initialize systems
         TradingPortfolio portfolio;
         FeatureEngineer feature_engineer;
+
+        // Metrics logging
+        std::ofstream metrics_file("network_metrics.csv");
+        metrics_file << "epoch,portfolio_value,epoch_return,dopamine,neurons,synapses\n";
+        float dopamine_level = 0.0f;
         
         // Initialize neural network on CUDA
         std::cout << "[INIT] Initializing CUDA neural network..." << std::endl;
@@ -450,6 +455,7 @@ int main(int argc, char* argv[]) {
                     
                     // Compute reward signal
                     float reward = portfolio.computeReward();
+                    dopamine_level = 0.99f * dopamine_level + reward;
                     
                     // Neural network forward pass
                     auto start_forward = std::chrono::high_resolution_clock::now();
@@ -496,10 +502,16 @@ int main(int argc, char* argv[]) {
             float epoch_duration = std::chrono::duration<float>(epoch_end - epoch_start).count();
             float epoch_return = (portfolio.getTotalValue() - epoch_start_value) / epoch_start_value * 100.0f;
             
-            std::cout << "Epoch " << (epoch + 1) << " completed in " << std::setprecision(1) 
+            std::cout << "Epoch " << (epoch + 1) << " completed in " << std::setprecision(1)
                       << epoch_duration << "s" << std::endl;
             std::cout << "Epoch Return: " << std::setprecision(2) << epoch_return << "%" << std::endl;
             std::cout << "Portfolio Value: $" << std::setprecision(2) << portfolio.getTotalValue() << std::endl;
+
+            // Log metrics for this epoch
+            NetworkStats stats = getNetworkStats();
+            metrics_file << epoch << ',' << portfolio.getTotalValue() << ',' << epoch_return << ','
+                         << dopamine_level << ',' << (stats.update_count > 0 ? stats.update_count : 0)
+                         << ',' << getNetworkConfig().totalSynapses << '\n';
         }
         
         auto simulation_end = std::chrono::high_resolution_clock::now();
@@ -514,7 +526,9 @@ int main(int argc, char* argv[]) {
         std::cout << "Decisions per Second: " << (total_decisions / total_duration) << std::endl;
         
         portfolio.printSummary();
-        
+
+        metrics_file.close();
+
         // Cleanup
         cleanupNetwork();
         

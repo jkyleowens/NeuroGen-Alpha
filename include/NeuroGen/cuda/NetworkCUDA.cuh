@@ -55,8 +55,17 @@ __global__ void applyHomeostaticScalingKernel(GPUSynapse* synapses, int num_syna
                                              float scale_factor, float target_rate, float current_rate);
 __global__ void validateNeuronStates(GPUNeuronState* neurons, int num_neurons, bool* is_valid);
 
-// Forward declaration of NetworkStats (defined in implementation)
-struct NetworkStats;
+// Statistics collected on the GPU network state
+struct NetworkStats {
+    float avg_firing_rate;
+    float total_spikes;
+    float avg_weight;
+    float reward_signal;
+    int   update_count;
+};
+
+// Retrieve the latest statistics from the GPU implementation
+NetworkStats getNetworkStats();
 
 struct NetworkPerformance {
     float forward_pass_time_ms;
