@@ -11,27 +11,27 @@
 #include <NeuroGen/NetworkConfig.h>
 
 // Main interface functions for the neural network
-extern "C" {
-    // Core network operations
-    void initializeNetwork();
-    std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal);
-    void updateSynapticWeightsCUDA(float reward_signal);
-    void cleanupNetwork();
-    
-    // Configuration and monitoring
-    void setNetworkConfig(const NetworkConfig& config);
-    NetworkConfig getNetworkConfig();
-    void printNetworkStats();
-    
-    // Advanced features
-    void saveNetworkState(const std::string& filename);
-    void loadNetworkState(const std::string& filename);
-    void resetNetwork();
-}
+// Core network operations
+void initializeNetwork();
+std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal);
+void updateSynapticWeightsCUDA(float reward_signal);
+void cleanupNetwork();
+
+// Configuration and monitoring
+void setNetworkConfig(const NetworkConfig& config);
+NetworkConfig getNetworkConfig();
+void printNetworkStats();
+
+// Advanced features
+void saveNetworkState(const std::string& filename);
+void loadNetworkState(const std::string& filename);
+void resetNetwork();
 
 // Internal helper functions (not exposed to main.cpp)
 namespace NetworkCUDAInternal {
-    void createNetworkTopology(std::vector<GPUSynapse>& synapses, std::mt19937& gen);
+    void createNetworkTopology(std::vector<GPUSynapse>& synapses,
+                               const std::vector<GPUCorticalColumn>& columns,
+                               std::mt19937& gen);
     std::vector<float> applySoftmax(const std::vector<float>& input);
     void updateNetworkStatistics();
     void applyHomeostaticScaling();
@@ -55,8 +55,17 @@ __global__ void applyHomeostaticScalingKernel(GPUSynapse* synapses, int num_syna
                                              float scale_factor, float target_rate, float current_rate);
 __global__ void validateNeuronStates(GPUNeuronState* neurons, int num_neurons, bool* is_valid);
 
-// Forward declaration of NetworkStats (defined in implementation)
-struct NetworkStats;
+// Statistics collected on the GPU network state
+struct NetworkStats {
+    float avg_firing_rate;
+    float total_spikes;
+    float avg_weight;
+    float reward_signal;
+    int   update_count;
+};
+
+// Retrieve the latest statistics from the GPU implementation
+NetworkStats getNetworkStats();
 
 struct NetworkPerformance {
     float forward_pass_time_ms;

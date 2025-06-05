@@ -36,6 +36,7 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 ./neural_sim         # default config
+python generate_charts.py  # create performance charts
 ```
 
 The reference regression test checks spike counts after 100 ms and ensures no NaNs.
@@ -61,7 +62,7 @@ struct NetworkConfig {
 };
 ```
 
-Call `finaliseConfig(cfg)` before constructing `NetworkCUDA` to compute `totalSynapses`.
+Call `finalizeConfig(cfg)` before constructing `NetworkCUDA` to compute `totalSynapses`.
 
 ### 5 · Roadmap (next iterations)
 

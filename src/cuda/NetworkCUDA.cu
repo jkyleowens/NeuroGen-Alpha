@@ -61,6 +61,9 @@ void safeCudaMemset(T* ptr, int value, size_t count) {
 static NetworkConfig g_config;
 static GPUNeuronState* d_neurons = nullptr;
 static GPUSynapse* d_synapses = nullptr;
+static GPUCorticalColumn* d_columns = nullptr;
+static std::vector<GPUCorticalColumn> h_columns;
+static int num_columns = 0;
 static float* d_input_buffer = nullptr;
 static float* d_output_buffer = nullptr;
 static float* d_reward_buffer = nullptr;
@@ -184,9 +187,13 @@ void initializeNetwork() {
     
     std::cout << "[INIT] Starting network initialization..." << std::endl;
     
-    // Use trading-optimized configuration by default
-    g_config = NetworkPresets::trading_optimized();
-    
+    // If no configuration has been provided, fall back to the trading preset
+    if (g_config.input_size <= 0 || g_config.hidden_size <= 0 ||
+        g_config.output_size <= 0) {
+        g_config = NetworkPresets::trading_optimized();
+    }
+
+    g_config.finalizeConfig();
     g_config.print();
     
     // Calculate network dimensions
@@ -199,6 +206,18 @@ void initializeNetwork() {
     hidden_end = g_config.input_size + g_config.hidden_size;
     output_start = g_config.input_size + g_config.hidden_size;
     output_end = total_neurons;
+
+    // Build cortical column descriptors for hidden layer
+    h_columns.clear();
+    h_columns.reserve(g_config.numColumns);
+    for (int c = 0; c < g_config.numColumns; ++c) {
+        int ns = hidden_start + c * g_config.neuronsPerColumn;
+        int ne = ns + g_config.neuronsPerColumn;
+        GPUCorticalColumn col{};
+        initGPUCorticalColumn(&col, ns, ne, c);
+        h_columns.push_back(col);
+    }
+    num_columns = static_cast<int>(h_columns.size());
     
     std::cout << "[CUDA] Initializing network with " << total_neurons << " neurons..." << std::endl;
     std::cout << "[CUDA] Input: [" << input_start << ", " << input_end << ")" << std::endl;
@@ -243,7 +262,15 @@ void initializeNetwork() {
     
     // Generate improved network topology
     std::vector<GPUSynapse> host_synapses;
-    NetworkCUDAInternal::createNetworkTopology(host_synapses, gen);
+    NetworkCUDAInternal::createNetworkTopology(host_synapses, h_columns, gen);
+
+    // Patch column synapse ranges
+    size_t syn_cursor = 0;
+    for (auto& col : h_columns) {
+        col.synapse_start = static_cast<int>(syn_cursor);
+        col.synapse_end   = static_cast<int>(syn_cursor + g_config.localFanOut * g_config.neuronsPerColumn);
+        syn_cursor = col.synapse_end;
+    }
     
     total_synapses = host_synapses.size();
     std::cout << "[CUDA] Created " << total_synapses << " synapses" << std::endl;
@@ -252,6 +279,12 @@ void initializeNetwork() {
     if (total_synapses > 0) {
         safeCudaMalloc(&d_synapses, total_synapses);
         safeCudaMemcpy(d_synapses, host_synapses.data(), total_synapses, cudaMemcpyHostToDevice);
+    }
+
+    // Copy cortical columns to GPU
+    if (num_columns > 0) {
+        safeCudaMalloc(&d_columns, num_columns);
+        safeCudaMemcpy(d_columns, h_columns.data(), num_columns, cudaMemcpyHostToDevice);
     }
     
     // Initialize random states
@@ -272,7 +305,9 @@ void initializeNetwork() {
 
 // Enhanced network topology creation
 namespace NetworkCUDAInternal {
-void createNetworkTopology(std::vector<GPUSynapse>& synapses, std::mt19937& gen) {
+void createNetworkTopology(std::vector<GPUSynapse>& synapses,
+                           const std::vector<GPUCorticalColumn>& columns,
+                           std::mt19937& gen) {
     std::uniform_real_distribution<float> weight_dist(0.0f, g_config.weight_init_std);
     std::uniform_real_distribution<float> delay_dist(g_config.delay_min, g_config.delay_max);
     std::uniform_real_distribution<float> prob_dist(0.0f, 1.0f);
@@ -288,7 +323,7 @@ void createNetworkTopology(std::vector<GPUSynapse>& synapses, std::mt19937& gen)
     for (int pre = input_start; pre < input_end; ++pre) {
         for (int post = hidden_start; post < hidden_end; ++post) {
             if (prob_dist(gen) < g_config.input_hidden_prob) {
-                GPUSynapse syn;
+                GPUSynapse syn{};
                 syn.pre_neuron_idx = pre;
                 syn.post_neuron_idx = post;
                 syn.weight = weight_dist(gen) * (prob_dist(gen) < g_config.exc_ratio ? 1.0f : -1.0f);
@@ -300,18 +335,24 @@ void createNetworkTopology(std::vector<GPUSynapse>& synapses, std::mt19937& gen)
             }
         }
     }
-    
+
     std::cout << "[TOPOLOGY] Created " << connections_created << " input->hidden connections" << std::endl;
     connections_created = 0;
-    
-    // Hidden layer recurrent connections (sparse)
-    for (int pre = hidden_start; pre < hidden_end; ++pre) {
-        for (int post = hidden_start; post < hidden_end; ++post) {
-            if (pre != post && prob_dist(gen) < g_config.hidden_hidden_prob) {
-                GPUSynapse syn;
-                syn.pre_neuron_idx = pre;
-                syn.post_neuron_idx = post;
-                syn.weight = weight_dist(gen) * (prob_dist(gen) < g_config.exc_ratio ? 0.5f : -0.8f);
+
+    // Local recurrent connections within each cortical column
+    for (const auto& col : columns) {
+        for (int n = col.neuron_start; n < col.neuron_end; ++n) {
+            bool is_exc = (n - col.neuron_start) < static_cast<int>(g_config.exc_ratio * g_config.neuronsPerColumn);
+            for (int k = 0; k < g_config.localFanOut; ++k) {
+                int tgt = col.neuron_start + static_cast<int>(prob_dist(gen) * g_config.neuronsPerColumn);
+                if (tgt == n) {
+                    tgt = ((tgt - col.neuron_start + 1) % g_config.neuronsPerColumn) + col.neuron_start;
+                }
+
+                GPUSynapse syn{};
+                syn.pre_neuron_idx = n;
+                syn.post_neuron_idx = tgt;
+                syn.weight = is_exc ? weight_dist(gen) : -weight_dist(gen);
                 syn.delay = delay_dist(gen);
                 syn.last_pre_spike_time = -1000.0f;
                 syn.activity_metric = 0.0f;
@@ -320,8 +361,8 @@ void createNetworkTopology(std::vector<GPUSynapse>& synapses, std::mt19937& gen)
             }
         }
     }
-    
-    std::cout << "[TOPOLOGY] Created " << connections_created << " hidden->hidden connections" << std::endl;
+
+    std::cout << "[TOPOLOGY] Created " << connections_created << " local column connections" << std::endl;
     connections_created = 0;
     
     // Hidden to Output connections (fully connected)
@@ -343,13 +384,15 @@ void createNetworkTopology(std::vector<GPUSynapse>& synapses, std::mt19937& gen)
     std::cout << "[TOPOLOGY] Total synapses: " << synapses.size() << std::endl;
 }
 
+} // namespace NetworkCUDAInternal
+
 // Enhanced forward pass with better dynamics
 std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal) {
     if (!network_initialized) {
         throw std::runtime_error("Network not initialized. Call initializeNetwork() first.");
     }
     
-    validateInputs(input, reward_signal);
+    NetworkCUDAInternal::validateInputs(input, reward_signal);
     
     // Copy input to GPU
     safeCudaMemcpy(d_input_buffer, input.data(), input.size(), cudaMemcpyHostToDevice);
@@ -418,8 +461,10 @@ std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_sig
     safeCudaMemcpy(raw_output.data(), d_output_buffer, g_config.output_size, cudaMemcpyDeviceToHost);
     
     // Apply softmax for decision probabilities
-    return applySoftmax(raw_output);
+    return NetworkCUDAInternal::applySoftmax(raw_output);
 }
+
+namespace NetworkCUDAInternal {
 
 // Improved softmax with numerical stability
 std::vector<float> applySoftmax(const std::vector<float>& input) {
@@ -560,6 +605,10 @@ void printNetworkStats() {
     std::cout << "Average Weight: " << g_stats.avg_weight << std::endl;
     std::cout << "Last Reward Signal: " << g_stats.reward_signal << std::endl;
     std::cout << "=========================" << std::endl;
+}
+
+NetworkStats getNetworkStats() {
+    return g_stats;
 }
 
 // Advanced features
