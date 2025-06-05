@@ -61,7 +61,7 @@ struct NetworkConfig {
 };
 ```
 
-Call `finaliseConfig(cfg)` before constructing `NetworkCUDA` to compute `totalSynapses`.
+Call `finalizeConfig(cfg)` before constructing `NetworkCUDA` to compute `totalSynapses`.
 
 ### 5 · Roadmap (next iterations)
 
