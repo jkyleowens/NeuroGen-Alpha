@@ -408,25 +408,6 @@ int main(int argc, char* argv[]) {
         TradingPortfolio portfolio;
         FeatureEngineer feature_engineer;
 
-        // Determine input feature size using a sample
-        auto sample_data = loadMarketData(data_files.front());
-        std::vector<float> sample_features;
-        for (const auto& dp : sample_data) {
-            if (dp.valid) {
-                sample_features = feature_engineer.engineerFeatures(
-                    dp.open, dp.high, dp.low, dp.close, dp.volume);
-                break;
-            }
-        }
-        if (sample_features.empty()) {
-            sample_features = feature_engineer.engineerFeatures(0, 0, 0, 0, 0);
-        }
-
-        NetworkConfig net_cfg = NetworkPresets::trading_optimized();
-        net_cfg.input_size = static_cast<int>(sample_features.size());
-        net_cfg.finalizeConfig();
-        setNetworkConfig(net_cfg);
-
         // Metrics logging
         std::ofstream metrics_file("network_metrics.csv");
         metrics_file << "epoch,portfolio_value,epoch_return,dopamine,neurons,synapses\n";
