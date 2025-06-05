@@ -189,7 +189,7 @@ void initializeNetwork() {
     
     // Use trading-optimized configuration by default
     g_config = NetworkPresets::trading_optimized();
-    g_config.finalizeConfig();
+    
     g_config.print();
     
     // Calculate network dimensions
