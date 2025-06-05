@@ -380,13 +380,15 @@ void createNetworkTopology(std::vector<GPUSynapse>& synapses,
     std::cout << "[TOPOLOGY] Total synapses: " << synapses.size() << std::endl;
 }
 
+} // namespace NetworkCUDAInternal
+
 // Enhanced forward pass with better dynamics
 std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal) {
     if (!network_initialized) {
         throw std::runtime_error("Network not initialized. Call initializeNetwork() first.");
     }
     
-    validateInputs(input, reward_signal);
+    NetworkCUDAInternal::validateInputs(input, reward_signal);
     
     // Copy input to GPU
     safeCudaMemcpy(d_input_buffer, input.data(), input.size(), cudaMemcpyHostToDevice);
@@ -455,8 +457,10 @@ std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_sig
     safeCudaMemcpy(raw_output.data(), d_output_buffer, g_config.output_size, cudaMemcpyDeviceToHost);
     
     // Apply softmax for decision probabilities
-    return applySoftmax(raw_output);
+    return NetworkCUDAInternal::applySoftmax(raw_output);
 }
+
+namespace NetworkCUDAInternal {
 
 // Improved softmax with numerical stability
 std::vector<float> applySoftmax(const std::vector<float>& input) {
