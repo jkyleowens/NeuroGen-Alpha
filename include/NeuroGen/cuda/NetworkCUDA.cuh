@@ -11,23 +11,21 @@
 #include <NeuroGen/NetworkConfig.h>
 
 // Main interface functions for the neural network
-extern "C" {
-    // Core network operations
-    void initializeNetwork();
-    std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal);
-    void updateSynapticWeightsCUDA(float reward_signal);
-    void cleanupNetwork();
-    
-    // Configuration and monitoring
-    void setNetworkConfig(const NetworkConfig& config);
-    NetworkConfig getNetworkConfig();
-    void printNetworkStats();
-    
-    // Advanced features
-    void saveNetworkState(const std::string& filename);
-    void loadNetworkState(const std::string& filename);
-    void resetNetwork();
-}
+// Core network operations
+void initializeNetwork();
+std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal);
+void updateSynapticWeightsCUDA(float reward_signal);
+void cleanupNetwork();
+
+// Configuration and monitoring
+void setNetworkConfig(const NetworkConfig& config);
+NetworkConfig getNetworkConfig();
+void printNetworkStats();
+
+// Advanced features
+void saveNetworkState(const std::string& filename);
+void loadNetworkState(const std::string& filename);
+void resetNetwork();
 
 // Internal helper functions (not exposed to main.cpp)
 namespace NetworkCUDAInternal {
