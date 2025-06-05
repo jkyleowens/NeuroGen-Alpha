@@ -29,7 +29,14 @@ int main() {
         std::vector<GPUSynapse> synapses;
         std::cout << "Building local loops..." << std::endl;
         tg.buildLocalLoops(synapses, columns);
-        
+
+        if (synapses.size() != config.totalSynapses) {
+            std::cerr << "Synapse count mismatch: expected "
+                      << config.totalSynapses << ", got "
+                      << synapses.size() << std::endl;
+            return 1;
+        }
+
         std::cout << "Created " << synapses.size() << " synapses" << std::endl;
         
         // Test validation
