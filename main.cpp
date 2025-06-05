@@ -8,27 +8,12 @@
 #include <filesystem>
 #include <algorithm>
 #include <iterator>
+#include <numeric>
 #include <chrono>
 #include <cmath>
 
-#if USE_CUDA
+#include <cuda_runtime.h>
 #include <NeuroGen/cuda/NetworkCUDA.cuh>
-#else
-#include "NetworkCPU.h"
-#endif
-
-// Forward declarations for the CUDA interface functions
-#if USE_CUDA
-extern "C" {
-    void initializeNetwork();
-    std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal);
-    void updateSynapticWeightsCUDA(float reward_signal);
-    void cleanupNetwork();
-    void setNetworkConfig(const NetworkConfig& config);
-    NetworkConfig getNetworkConfig();
-    void printNetworkStats();
-}
-#endif
 
 // Enhanced Portfolio Management System
 class TradingPortfolio {
@@ -365,6 +350,17 @@ std::vector<MarketData> loadMarketData(const std::string& filepath) {
     return data;
 }
 
+// Load every CSV file once before training to avoid repeated I/O overhead
+std::vector<std::vector<MarketData>> preloadMarketData(
+    const std::vector<std::string>& files) {
+    std::vector<std::vector<MarketData>> all;
+    all.reserve(files.size());
+    for (const auto& f : files) {
+        all.push_back(loadMarketData(f));
+    }
+    return all;
+}
+
 // Decision making with confidence
 struct TradingDecision {
     std::string action;
@@ -404,6 +400,13 @@ int main(int argc, char* argv[]) {
         std::cout << "Epochs: " << num_epochs << std::endl;
         std::cout << "Detailed Logging: " << (detailed_logging ? "ON" : "OFF") << std::endl;
         std::cout << "===========================================" << std::endl;
+
+        int device_count = 0;
+        cudaError_t cuda_status = cudaGetDeviceCount(&device_count);
+        if (cuda_status != cudaSuccess || device_count == 0) {
+            std::cerr << "[ERROR] No CUDA-capable device detected. Exiting." << std::endl;
+            return 1;
+        }
         
         // Load available data files
         auto data_files = getAvailableDataFiles(data_dir);
@@ -411,24 +414,48 @@ int main(int argc, char* argv[]) {
             std::cerr << "[FATAL] No CSV files found in " << data_dir << std::endl;
             return 1;
         }
+
+        // Preload all market data once to avoid per-epoch disk I/O
+        auto all_data = preloadMarketData(data_files);
         
+
         // Initialize systems
         TradingPortfolio portfolio;
         FeatureEngineer feature_engineer;
+
+        // Determine input feature size using a sample
+        auto sample_data = all_data.front();
+        std::vector<float> sample_features;
+        for (const auto& dp : sample_data) {
+            if (dp.valid) {
+                sample_features = feature_engineer.engineerFeatures(
+                    dp.open, dp.high, dp.low, dp.close, dp.volume);
+                break;
+            }
+        }
+        if (sample_features.empty()) {
+            sample_features = feature_engineer.engineerFeatures(0, 0, 0, 0, 0);
+        }
+
+        NetworkConfig net_cfg = NetworkPresets::trading_optimized();
+        net_cfg.input_size = static_cast<int>(sample_features.size());
+        net_cfg.finalizeConfig();
+        setNetworkConfig(net_cfg);
+
+        // Metrics logging
+        std::ofstream metrics_file("network_metrics.csv");
+        metrics_file << "epoch,portfolio_value,epoch_return,dopamine,neurons,synapses\n";
+        float dopamine_level = 0.0f;
         
-        // Initialize neural network (CPU or CUDA based on compilation)
-#if USE_CUDA
+        // Initialize neural network on CUDA
         std::cout << "[INIT] Initializing CUDA neural network..." << std::endl;
         initializeNetwork();
-#else
-        std::cout << "[INIT] Initializing CPU neural network..." << std::endl;
-        NetworkConfig config;
-        NetworkCPU network(config);
-#endif
         
         // Random number generation for file shuffling
         std::random_device rd;
         std::mt19937 rng(rd());
+        std::vector<size_t> file_indices(data_files.size());
+        std::iota(file_indices.begin(), file_indices.end(), 0);
         
         long long total_decisions = 0;
         long long profitable_decisions = 0;
@@ -439,19 +466,20 @@ int main(int argc, char* argv[]) {
             std::cout << "\n=== Epoch " << (epoch + 1) << "/" << num_epochs << " ===" << std::endl;
             
             auto epoch_start = std::chrono::high_resolution_clock::now();
-            float epoch_start_value = portfolio.getTotalValue();
+            double epoch_start_value = portfolio.getTotalValue();
             
             // Shuffle files for better generalization
-            std::shuffle(data_files.begin(), data_files.end(), rng);
-            
-            for (const auto& file_path : data_files) {
+            std::shuffle(file_indices.begin(), file_indices.end(), rng);
+
+            for (size_t idx : file_indices) {
+                const auto& file_path = data_files[idx];
+                const auto& market_data = all_data[idx];
                 std::filesystem::path p(file_path);
                 
                 if (detailed_logging) {
                     std::cout << "[PROCESSING] " << p.filename().string() << std::endl;
                 }
                 
-                auto market_data = loadMarketData(file_path);
                 if (market_data.empty()) continue;
                 
                 for (const auto& data_point : market_data) {
@@ -465,14 +493,11 @@ int main(int argc, char* argv[]) {
                     
                     // Compute reward signal
                     float reward = portfolio.computeReward();
+                    dopamine_level = 0.99f * dopamine_level + reward;
                     
                     // Neural network forward pass
                     auto start_forward = std::chrono::high_resolution_clock::now();
-#if USE_CUDA
                     auto raw_outputs = forwardCUDA(features, reward);
-#else
-                    auto raw_outputs = network.forward(features, reward);
-#endif
                     auto end_forward = std::chrono::high_resolution_clock::now();
                     
                     // Make trading decision
@@ -487,11 +512,7 @@ int main(int argc, char* argv[]) {
                     
                     // Update neural network
                     auto start_learning = std::chrono::high_resolution_clock::now();
-#if USE_CUDA
                     updateSynapticWeightsCUDA(reward);
-#else
-                    network.updateWeights(reward);
-#endif
                     auto end_learning = std::chrono::high_resolution_clock::now();
                     
                     total_decisions++;
@@ -516,40 +537,47 @@ int main(int argc, char* argv[]) {
             }
             
             auto epoch_end = std::chrono::high_resolution_clock::now();
-            float epoch_duration = std::chrono::duration<float>(epoch_end - epoch_start).count();
-            float epoch_return = (portfolio.getTotalValue() - epoch_start_value) / epoch_start_value * 100.0f;
+            double epoch_duration = std::chrono::duration<double>(epoch_end - epoch_start).count();
+            double epoch_return = (portfolio.getTotalValue() - epoch_start_value) / epoch_start_value * 100.0;
             
-            std::cout << "Epoch " << (epoch + 1) << " completed in " << std::setprecision(1) 
-                      << epoch_duration << "s" << std::endl;
-            std::cout << "Epoch Return: " << std::setprecision(2) << epoch_return << "%" << std::endl;
-            std::cout << "Portfolio Value: $" << std::setprecision(2) << portfolio.getTotalValue() << std::endl;
+            std::cout << "Epoch " << (epoch + 1) << " completed in "
+                      << std::fixed << std::setprecision(1) << epoch_duration << "s" << std::endl;
+            std::cout << "Epoch Return: " << std::fixed << std::setprecision(2) << epoch_return << "%" << std::endl;
+            std::cout << "Portfolio Value: $" << std::fixed << std::setprecision(2) << portfolio.getTotalValue() << std::endl;
+
+            // Log metrics for this epoch
+            NetworkStats stats = getNetworkStats();
+            metrics_file << epoch << ',' << portfolio.getTotalValue() << ',' << epoch_return << ','
+                         << dopamine_level << ',' << (stats.update_count > 0 ? stats.update_count : 0)
+                         << ',' << getNetworkConfig().totalSynapses << '\n';
+            metrics_file.flush();
         }
         
         auto simulation_end = std::chrono::high_resolution_clock::now();
-        float total_duration = std::chrono::duration<float>(simulation_end - simulation_start).count();
+        double total_duration = std::chrono::duration<double>(simulation_end - simulation_start).count();
         
         // Final results
         std::cout << "\n=== Simulation Complete ===" << std::endl;
-        std::cout << "Total Duration: " << std::setprecision(1) << total_duration << " seconds" << std::endl;
+        std::cout << "Total Duration: " << std::fixed << std::setprecision(1) << total_duration << " seconds" << std::endl;
         std::cout << "Total Decisions: " << total_decisions << std::endl;
-        std::cout << "Profitable Decisions: " << profitable_decisions 
-                  << " (" << (100.0f * profitable_decisions / total_decisions) << "%)" << std::endl;
-        std::cout << "Decisions per Second: " << (total_decisions / total_duration) << std::endl;
+        std::cout << "Profitable Decisions: " << profitable_decisions
+                  << " (" << std::fixed << std::setprecision(2)
+                  << (100.0 * profitable_decisions / total_decisions) << "%)" << std::endl;
+        std::cout << "Decisions per Second: " << std::fixed << std::setprecision(2)
+                  << (total_decisions / total_duration) << std::endl;
         
         portfolio.printSummary();
-        
+
+        metrics_file.close();
+
         // Cleanup
-#if USE_CUDA
         cleanupNetwork();
-#endif
         
         return 0;
         
     } catch (const std::exception& e) {
         std::cerr << "[FATAL ERROR] " << e.what() << std::endl;
-#if USE_CUDA
         cleanupNetwork();
-#endif
         return 1;
     }
 }
