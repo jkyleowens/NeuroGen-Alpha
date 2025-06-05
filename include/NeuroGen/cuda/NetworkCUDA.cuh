@@ -31,7 +31,9 @@ extern "C" {
 
 // Internal helper functions (not exposed to main.cpp)
 namespace NetworkCUDAInternal {
-    void createNetworkTopology(std::vector<GPUSynapse>& synapses, std::mt19937& gen);
+    void createNetworkTopology(std::vector<GPUSynapse>& synapses,
+                               const std::vector<GPUCorticalColumn>& columns,
+                               std::mt19937& gen);
     std::vector<float> applySoftmax(const std::vector<float>& input);
     void updateNetworkStatistics();
     void applyHomeostaticScaling();
