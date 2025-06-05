@@ -110,3 +110,4 @@ void updateSynapticWeightsCUDA(float reward_signal) {
     // Perform STDP updates on synaptic weights using the reward signal
     // Placeholder logic: no-op
 }
+

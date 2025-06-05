@@ -1,1 +1,5 @@
-#include "../include/NeuroGen/cuda/NetworkCUDA.cuh" // Updated include path
+#include "../include/NeuroGen/cuda/NetworkCUDA.cuh"
+
+int main() {
+    return 0;
+}

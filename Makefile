@@ -74,8 +74,8 @@ headers:
 	@if [ -f "src/TopologyGenerator.h" ]; then cp src/TopologyGenerator.h $(INCLUDE_DIR)/NeuroGen/; fi
 	@echo "Headers copied to include directory"
 
-# Link all object files
-$(TARGET): $(CU_OBJS) $(CPP_OBJS)
+# Link all object files, including main.cpp
+$(TARGET): $(CU_OBJS) $(CPP_OBJS) $(OBJ_DIR)/main.o
 	@mkdir -p $(BIN_DIR)
 	$(NVCC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 	@echo "Build complete: $@"
