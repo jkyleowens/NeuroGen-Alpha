@@ -187,13 +187,9 @@ void initializeNetwork() {
     
     std::cout << "[INIT] Starting network initialization..." << std::endl;
     
-    // If no configuration has been provided, fall back to the trading preset
-    if (g_config.input_size <= 0 || g_config.hidden_size <= 0 ||
-        g_config.output_size <= 0) {
-        g_config = NetworkPresets::trading_optimized();
-    }
-
-    g_config.finalizeConfig();
+    // Use trading-optimized configuration by default
+    g_config = NetworkPresets::trading_optimized();
+    
     g_config.print();
     
     // Calculate network dimensions

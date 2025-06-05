@@ -422,32 +422,9 @@ int main(int argc, char* argv[]) {
         // Initialize systems
         TradingPortfolio portfolio;
         FeatureEngineer feature_engineer;
-
-        // Determine input feature size using a sample
-        auto sample_data = all_data.front();
-        std::vector<float> sample_features;
-        for (const auto& dp : sample_data) {
-            if (dp.valid) {
-                sample_features = feature_engineer.engineerFeatures(
-                    dp.open, dp.high, dp.low, dp.close, dp.volume);
-                break;
-            }
-        }
-        if (sample_features.empty()) {
-            sample_features = feature_engineer.engineerFeatures(0, 0, 0, 0, 0);
-        }
-
-        NetworkConfig net_cfg = NetworkPresets::trading_optimized();
-        net_cfg.input_size = static_cast<int>(sample_features.size());
-        net_cfg.finalizeConfig();
-        setNetworkConfig(net_cfg);
-
-        // Metrics logging
-        std::ofstream metrics_file("network_metrics.csv");
-        metrics_file << "epoch,portfolio_value,epoch_return,dopamine,neurons,synapses\n";
-        float dopamine_level = 0.0f;
         
-        // Initialize neural network on CUDA
+        // Initialize neural network (CPU or CUDA based on compilation)
+#if USE_CUDA
         std::cout << "[INIT] Initializing CUDA neural network..." << std::endl;
         initializeNetwork();
         
@@ -540,17 +517,10 @@ int main(int argc, char* argv[]) {
             double epoch_duration = std::chrono::duration<double>(epoch_end - epoch_start).count();
             double epoch_return = (portfolio.getTotalValue() - epoch_start_value) / epoch_start_value * 100.0;
             
-            std::cout << "Epoch " << (epoch + 1) << " completed in "
-                      << std::fixed << std::setprecision(1) << epoch_duration << "s" << std::endl;
-            std::cout << "Epoch Return: " << std::fixed << std::setprecision(2) << epoch_return << "%" << std::endl;
-            std::cout << "Portfolio Value: $" << std::fixed << std::setprecision(2) << portfolio.getTotalValue() << std::endl;
-
-            // Log metrics for this epoch
-            NetworkStats stats = getNetworkStats();
-            metrics_file << epoch << ',' << portfolio.getTotalValue() << ',' << epoch_return << ','
-                         << dopamine_level << ',' << (stats.update_count > 0 ? stats.update_count : 0)
-                         << ',' << getNetworkConfig().totalSynapses << '\n';
-            metrics_file.flush();
+            std::cout << "Epoch " << (epoch + 1) << " completed in " << std::setprecision(1) 
+                      << epoch_duration << "s" << std::endl;
+            std::cout << "Epoch Return: " << std::setprecision(2) << epoch_return << "%" << std::endl;
+            std::cout << "Portfolio Value: $" << std::setprecision(2) << portfolio.getTotalValue() << std::endl;
         }
         
         auto simulation_end = std::chrono::high_resolution_clock::now();
