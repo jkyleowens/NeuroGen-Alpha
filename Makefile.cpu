@@ -1,13 +1,11 @@
-# CPU-Only Makefile for NeuroGen Alpha (No CUDA Required)
-# Use this when CUDA toolkit is not available
-
-# Standard C++ compiler
+# CPU-only Makefile for NeuroGen Alpha project (for testing without CUDA)
+# Compiler configuration
 CXX := g++
 
-# Include directories (no CUDA)
-INCLUDE_DIRS := -I./include -I./include/NeuroGen
+# Include directories  
+INCLUDE_DIRS := -I./include -I./include/NeuroGen -I./include/NeuroGen/cuda
 
-# Compilation flags
+# Compilation flags for CPU-only build
 CXXFLAGS := -std=c++17 -O2 $(INCLUDE_DIRS) -DUSE_CUDA=0 -Wall -Wextra
 
 # Directory structure
@@ -20,38 +18,52 @@ INCLUDE_DIR := include
 $(shell mkdir -p $(OBJ_DIR))
 $(shell mkdir -p $(BIN_DIR))
 $(shell mkdir -p $(INCLUDE_DIR)/NeuroGen)
+$(shell mkdir -p $(INCLUDE_DIR)/NeuroGen/cuda)
 
-# CPU source files (exclude CUDA files)
-CPP_SRCS := $(filter-out $(SRC_DIR)/cuda/%, $(wildcard $(SRC_DIR)/*.cpp))
-MAIN_SRCS := main.cpp Network.cpp Neuron.cpp NetworkCPU.cpp cpu_network_wrapper.cpp
+# Source files (CPU implementations only)
+CPP_SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 
 # Object files
-CPP_OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SRCS))
-MAIN_OBJS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(MAIN_SRCS))
+CPP_OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SRCS))
 
 # Target binary
-TARGET := $(BIN_DIR)/neural_sim_cpu
+TARGET = $(BIN_DIR)/neural_sim_cpu
 
 # Main targets
-.PHONY: all clean test setup headers info
+.PHONY: all clean setup headers
 
 all: setup headers $(TARGET)
 
-# Setup directory structure
+# Setup directory structure and copy headers
 setup:
-	@mkdir -p $(INCLUDE_DIR)/NeuroGen
+	@mkdir -p $(INCLUDE_DIR)/NeuroGen/cuda
 	@echo "Directory structure created"
 
-# Copy non-CUDA headers
+# Copy headers to proper include directory structure
 headers:
 	@echo "Setting up header files..."
+	@if [ -f "src/cuda/GPUNeuralStructures.h" ]; then cp src/cuda/GPUNeuralStructures.h $(INCLUDE_DIR)/NeuroGen/; fi
+	@if [ -f "src/cuda/NetworkCUDA.cuh" ]; then cp src/cuda/NetworkCUDA.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/STDPKernel.cuh" ]; then cp src/cuda/STDPKernel.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/NeuronUpdateKernel.cuh" ]; then cp src/cuda/NeuronUpdateKernel.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/NeuronSpikingKernels.cuh" ]; then cp src/cuda/NeuronSpikingKernels.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/KernelLaunchWrappers.cuh" ]; then cp src/cuda/KernelLaunchWrappers.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/SynapseInputKernel.cuh" ]; then cp src/cuda/SynapseInputKernel.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/RandomStateInit.cuh" ]; then cp src/cuda/RandomStateInit.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/GridBlockUtils.cuh" ]; then cp src/cuda/GridBlockUtils.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/CorticalColumn.h" ]; then cp src/cuda/CorticalColumn.h $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/CudaCompatibility.h" ]; then cp src/cuda/CudaCompatibility.h $(INCLUDE_DIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/CudaUtils.h" ]; then cp src/cuda/CudaUtils.h $(INCLUDE_DIR)/NeuroGen/cuda/; fi
 	@if [ -f "src/NetworkConfig.h" ]; then cp src/NetworkConfig.h $(INCLUDE_DIR)/NeuroGen/; fi
+	@if [ -f "src/NetworkPresets.h" ]; then cp src/NetworkPresets.h $(INCLUDE_DIR)/NeuroGen/; fi
+	@if [ -f "src/TopologyGenerator.h" ]; then cp src/TopologyGenerator.h $(INCLUDE_DIR)/NeuroGen/; fi
+	@if [ -f "src/GPUStructuresFwd.h" ]; then cp src/GPUStructuresFwd.h $(INCLUDE_DIR)/NeuroGen/; fi
 	@echo "Headers copied to include directory"
 
-# Link all object files
-$(TARGET): $(MAIN_OBJS) $(CPP_OBJS)
+# Link all object files, including main.cpp  
+$(TARGET): $(CPP_OBJS) $(OBJ_DIR)/main.o
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^ -pthread
 	@echo "CPU build complete: $@"
 
 # Compile C++ sources
@@ -59,18 +71,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Compile main sources
-$(OBJ_DIR)/%.o: %.cpp
+# Special rule for main.cpp
+$(OBJ_DIR)/main.o: main.cpp
 	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Test compilation (syntax check)
-test-syntax:
-	@echo "Testing C++ syntax compilation..."
-	@$(CXX) $(CXXFLAGS) -fsyntax-only main.cpp Network.cpp Neuron.cpp 2>/dev/null && echo "✅ Main files syntax OK" || echo "❌ Syntax errors in main files"
-	@$(CXX) $(CXXFLAGS) -fsyntax-only $(SRC_DIR)/*.cpp 2>/dev/null && echo "✅ Source files syntax OK" || echo "❌ Syntax errors in source files"
-
-# Clean
 clean:
 	rm -rf $(OBJ_DIR)/*
 	rm -rf $(INCLUDE_DIR)/*
@@ -82,15 +87,10 @@ info:
 	@echo "CXX: $(CXX)"
 	@echo "INCLUDE_DIRS: $(INCLUDE_DIRS)"
 	@echo "C++ sources: $(CPP_SRCS)"
-	@echo "Main sources: $(MAIN_SRCS)"
-	@echo "Objects: $(CPP_OBJS) $(MAIN_OBJS)"
-	@echo "Target: $(TARGET)"
+	@echo "C++ objects: $(CPP_OBJS)"
 
-# Check available files
-check-files:
-	@echo "Available source files:"
-	@ls -la *.cpp 2>/dev/null || echo "No .cpp files in root"
-	@echo "Available in src/:"
-	@ls -la src/*.cpp 2>/dev/null || echo "No .cpp files in src/"
-	@echo "Available headers:"
-	@find . -name "*.h" | head -10
+# Test compilation of main.cpp only
+test-main:
+	@echo "Testing main.cpp compilation..."
+	$(CXX) $(CXXFLAGS) -c main.cpp -o $(OBJ_DIR)/main_test.o
+	@echo "main.cpp compiled successfully"

@@ -27,12 +27,14 @@
 #include <algorithm>
 #include <chrono>
 
-#if defined(USE_CUDA) && USE_CUDA
+#ifdef USE_CUDA
+#if USE_CUDA
 #include "NeuroGen/cuda/NetworkCUDA.cuh"
-#include "NeuroGen/cuda/CudaNetworkAccelerator.h"
+#endif
 #endif
 
-#include "Neuron.h"
+#include <NeuroGen/Neuron.h>
+#include <NeuroGen/NetworkConfig.h>
 
 // Optional JSON support - disabled for now to avoid dependency issues
 // #define USE_JSON_CONFIG
@@ -150,60 +152,6 @@ struct NeuromodulatorSystem {
     void releaseAcetylcholine(double amount) { acetylcholine += amount; }
     void releaseNorepinephrine(double amount) { norepinephrine += amount; }
     void releaseSerotonin(double amount) { serotonin += amount; }
-};
-
-/**
- * @brief Network configuration parameters
- */
-struct NetworkConfig {
-    // Simulation parameters
-    double dt = 0.01;                    // Integration time step (ms)
-    double axonal_speed = 1.0;           // m/s (affects delays)
-    
-    // Spatial organization
-    double network_width = 1000.0;       // μm
-    double network_height = 1000.0;      // μm
-    double network_depth = 100.0;        // μm
-    
-    // Connectivity parameters
-    double max_connection_distance = 200.0; // μm
-    double connection_probability_base = 0.01;
-    double distance_decay_constant = 50.0;   // μm
-    double spike_correlation_window = 20.0;  // ms
-    double correlation_threshold = 0.3;
-    
-    // Neurogenesis parameters
-    bool enable_neurogenesis = true;
-    double neurogenesis_rate = 0.001;        // neurons/ms base rate
-    double activity_threshold_low = 0.1;     // For underactivation
-    double activity_threshold_high = 10.0;   // For hyperactivation
-    size_t max_neurons = 1000;
-    
-    // Pruning parameters
-    bool enable_pruning = true;
-    double synapse_pruning_threshold = 0.05;
-    double neuron_pruning_threshold = 0.01;
-    double pruning_check_interval = 100.0;   // ms
-    double synapse_activity_window = 1000.0; // ms
-    
-    // Plasticity parameters
-    bool enable_stdp = true;
-    double stdp_learning_rate = 0.01;
-    double stdp_tau_pre = 20.0;              // ms
-    double stdp_tau_post = 20.0;             // ms
-    double eligibility_decay = 50.0;         // ms
-    double min_synaptic_weight = 0.001;      // Minimum synaptic weight
-    double max_synaptic_weight = 2.0;        // Maximum synaptic weight
-    
-    // Neuromodulation
-    bool enable_neuromodulation = true;
-    double modulation_strength = 0.1;
-
-    std::string toString() const {
-        // Basic implementation, can be expanded
-        return "NetworkConfig{dt=" + std::to_string(dt) +
-               ", max_neurons=" + std::to_string(max_neurons) + "}";
-    }
 };
 
 /**
@@ -604,18 +552,22 @@ private:
      */
     void logStructuralChange(const std::string& type, const std::string& details) const;
 
-    #if defined(USE_CUDA) && USE_CUDA
+    #ifdef USE_CUDA
     // CUDA acceleration components
-    std::unique_ptr<CudaNetworkAccelerator> cuda_accelerator_;
+    std::unique_ptr<NetworkCUDA> cuda_accelerator_;
     bool use_cuda_;
     bool cuda_data_uploaded_;
-    
+
     // Performance tracking
     std::chrono::high_resolution_clock::time_point last_cuda_sync_;
     double cuda_compute_time_;
     double cpu_compute_time_;
-    #endif
+#endif
 };
+
+#ifdef USE_CUDA
+extern __managed__ Network::NetworkStats g_stats;
+#endif
 
 /**
  * @brief Network builder for easy network construction

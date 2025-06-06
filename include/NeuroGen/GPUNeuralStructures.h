@@ -3,12 +3,8 @@
 
 #include <cuda_runtime.h>
 
-// Include column structures depending on build mode
-#ifdef __CUDACC__
+// Include other GPU structures
 #include "CorticalColumn.h"
-#else
-#include "GPUStructuresFwd.h"
-#endif
 
 // Maximum number of compartments per neuron
 #define MAX_COMPARTMENTS 5

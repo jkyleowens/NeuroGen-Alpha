@@ -3,13 +3,17 @@
  * @brief Definitions for Network class and related functions
  */
 
-#include "Network.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <vector>
 #include <chrono>
 #include <cmath>
+
+#include <NeuroGen/Network.h>
+#ifdef USE_CUDA
+#include <NeuroGen/cuda/NetworkCUDA.cuh>
+#endif
 
 // Constructor
 Network::Network(const NetworkConfig& config) 

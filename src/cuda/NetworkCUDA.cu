@@ -5,6 +5,7 @@
 #include <NeuroGen/NetworkConfig.h>
 #include <NeuroGen/NetworkPresets.h>
 #include <NeuroGen/GPUNeuralStructures.h>
+#include <NeuroGen/Network.h> // For NetworkStats
 #include <NeuroGen/cuda/STDPKernel.cuh>
 #include <NeuroGen/cuda/KernelLaunchWrappers.cuh>
 #include <NeuroGen/cuda/RandomStateInit.cuh>
@@ -21,6 +22,8 @@
 // CUDA includes for kernel launch support
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+
+__managed__ Network::NetworkStats g_stats;
 
 // CUDA utility functions
 dim3 getOptimalBlockSize() {
@@ -57,6 +60,8 @@ void safeCudaMemset(T* ptr, int value, size_t count) {
     }
 }
 
+using NetworkStats = Network::NetworkStats;
+
 // Global network state
 static NetworkConfig g_config;
 static GPUNeuronState* d_neurons = nullptr;
@@ -78,22 +83,7 @@ static int input_start, input_end;
 static int hidden_start, hidden_end;
 static int output_start, output_end;
 
-// Performance monitoring
-// The statistics structure is defined in NetworkCUDA.cuh.  We keep the
-// implementation here lightweight by providing a helper to reset the
-// statistics rather than redefining the struct (which previously caused
-// conflicts when the header was included).  This also ensures that the
-// structure used in host code and device code remain consistent.
-
-static CudaNetworkStats g_stats;
-
-static void resetNetworkStats(CudaNetworkStats &stats) {
-    stats.avg_firing_rate = 0.0f;
-    stats.total_spikes    = 0.0f;
-    stats.avg_weight      = 0.0f;
-    stats.reward_signal   = 0.0f;
-    stats.update_count    = 0;
-}
+static NetworkStats g_stats;
 static float current_time = 0.0f;
 static bool network_initialized = false;
 
@@ -187,7 +177,7 @@ void initializeNetwork() {
     
     // Use trading-optimized configuration by default
     g_config = NetworkPresets::trading_optimized();
-    g_config.finalizeConfig();
+    
     g_config.print();
     
     // Calculate network dimensions
@@ -291,7 +281,7 @@ void initializeNetwork() {
     safeCudaMemset(d_spike_count, 0, 1);
     
     network_initialized = true;
-    resetNetworkStats(g_stats);
+    g_stats.reset();
     current_time = 0.0f;
     
     std::cout << "[CUDA] Network initialization complete!" << std::endl;
@@ -601,7 +591,7 @@ void printNetworkStats() {
     std::cout << "=========================" << std::endl;
 }
 
-CudaNetworkStats getNetworkStats() {
+NetworkStats getNetworkStats() {
     return g_stats;
 }
 
@@ -702,7 +692,7 @@ void resetNetwork() {
     
     // Reset global state
     current_time = 0.0f;
-    resetNetworkStats(g_stats);
+    g_stats.reset();
     
     // Reinitialize neurons to resting state
     if (total_neurons > 0) {

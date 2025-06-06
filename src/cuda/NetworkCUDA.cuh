@@ -8,24 +8,30 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <NeuroGen/GPUNeuralStructures.h>
-#include <NeuroGen/NetworkConfig.h>
+#include <NeuroGen/Network.h> // Include Network.h for NetworkStats and NetworkConfig definitions
+
+struct GPUNeuronState;
+struct GPUSynapse;
+struct GPUCorticalColumn;
 
 // Main interface functions for the neural network
-// Core network operations
-void initializeNetwork();
-std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal);
-void updateSynapticWeightsCUDA(float reward_signal);
-void cleanupNetwork();
-
-// Configuration and monitoring
-void setNetworkConfig(const NetworkConfig& config);
-NetworkConfig getNetworkConfig();
-void printNetworkStats();
-
-// Advanced features
-void saveNetworkState(const std::string& filename);
-void loadNetworkState(const std::string& filename);
-void resetNetwork();
+extern "C" {
+    // Core network operations
+    void initializeNetwork();
+    std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal);
+    void updateSynapticWeightsCUDA(float reward_signal);
+    void cleanupNetwork();
+    
+    // Configuration and monitoring
+    void setNetworkConfig(const NetworkConfig& config);
+    NetworkConfig getNetworkConfig();
+    void printNetworkStats();
+    
+    // Advanced features
+    void saveNetworkState(const std::string& filename);
+    void loadNetworkState(const std::string& filename);
+    void resetNetwork();
+}
 
 // Internal helper functions (not exposed to main.cpp)
 namespace NetworkCUDAInternal {
@@ -38,9 +44,7 @@ namespace NetworkCUDAInternal {
     void validateInputs(const std::vector<float>& input, float reward_signal);
 }
 
-// Forward declaration for GPUNeuronState and GPUSynapse
-struct GPUNeuronState;
-struct GPUSynapse;
+
 
 // CUDA kernel declarations for internal use
 __global__ void injectInputCurrentImproved(GPUNeuronState* neurons, const float* input_data, 
@@ -55,18 +59,7 @@ __global__ void applyHomeostaticScalingKernel(GPUSynapse* synapses, int num_syna
                                              float scale_factor, float target_rate, float current_rate);
 __global__ void validateNeuronStates(GPUNeuronState* neurons, int num_neurons, bool* is_valid);
 
-// Statistics collected on the GPU network state
-struct CudaNetworkStats {
-    float avg_firing_rate;
-    float total_spikes;
-    float avg_weight;
-    float reward_signal;
-    int   update_count;
-};
-
-// Retrieve the latest statistics from the GPU implementation
-CudaNetworkStats getNetworkStats();
-
+// Network performance tracking structure
 struct NetworkPerformance {
     float forward_pass_time_ms;
     float learning_time_ms;

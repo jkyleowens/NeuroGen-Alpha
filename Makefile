@@ -72,6 +72,8 @@ headers:
 	@if [ -f "src/NetworkConfig.h" ]; then cp src/NetworkConfig.h $(INCLUDE_DIR)/NeuroGen/; fi
 	@if [ -f "src/NetworkPresets.h" ]; then cp src/NetworkPresets.h $(INCLUDE_DIR)/NeuroGen/; fi
 	@if [ -f "src/TopologyGenerator.h" ]; then cp src/TopologyGenerator.h $(INCLUDE_DIR)/NeuroGen/; fi
+	@if [ -f "src/Network.h" ]; then cp src/Network.h $(INCLUDE_DIR)/NeuroGen/; fi
+	@if [ -f "src/Neuron.h" ]; then cp src/Neuron.h $(INCLUDE_DIR)/NeuroGen/; fi
 	@echo "Headers copied to include directory"
 
 # Link all object files, including main.cpp
