@@ -79,23 +79,21 @@ static int hidden_start, hidden_end;
 static int output_start, output_end;
 
 // Performance monitoring
-struct NetworkStats {
-    float avg_firing_rate = 0.0f;
-    float total_spikes = 0.0f;
-    float avg_weight = 0.0f;
-    float reward_signal = 0.0f;
-    int update_count = 0;
-    
-    void reset() {
-        avg_firing_rate = 0.0f;
-        total_spikes = 0.0f;
-        avg_weight = 0.0f;
-        reward_signal = 0.0f;
-        update_count = 0;
-    }
-};
+// The statistics structure is defined in NetworkCUDA.cuh.  We keep the
+// implementation here lightweight by providing a helper to reset the
+// statistics rather than redefining the struct (which previously caused
+// conflicts when the header was included).  This also ensures that the
+// structure used in host code and device code remain consistent.
 
 static NetworkStats g_stats;
+
+static void resetNetworkStats(NetworkStats &stats) {
+    stats.avg_firing_rate = 0.0f;
+    stats.total_spikes    = 0.0f;
+    stats.avg_weight      = 0.0f;
+    stats.reward_signal   = 0.0f;
+    stats.update_count    = 0;
+}
 static float current_time = 0.0f;
 static bool network_initialized = false;
 
@@ -293,7 +291,7 @@ void initializeNetwork() {
     safeCudaMemset(d_spike_count, 0, 1);
     
     network_initialized = true;
-    g_stats.reset();
+    resetNetworkStats(g_stats);
     current_time = 0.0f;
     
     std::cout << "[CUDA] Network initialization complete!" << std::endl;
@@ -704,7 +702,7 @@ void resetNetwork() {
     
     // Reset global state
     current_time = 0.0f;
-    g_stats.reset();
+    resetNetworkStats(g_stats);
     
     // Reinitialize neurons to resting state
     if (total_neurons > 0) {
