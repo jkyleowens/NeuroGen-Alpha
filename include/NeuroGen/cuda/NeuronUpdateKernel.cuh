@@ -10,9 +10,10 @@ struct GPUNeuronState;
  * CUDA kernel for RK4 integration of Hodgkin-Huxley model
  * @param neurons Array of neuron states
  * @param dt Time step
+ * @param current_time Current simulation time
  * @param N Number of neurons
  */
-__global__ void rk4NeuronUpdateKernel(GPUNeuronState* neurons, float dt, int N);
+__global__ void rk4NeuronUpdateKernel(GPUNeuronState* neurons, float dt, float current_time, int N);
 
 /**
  * CUDA kernel for simple voltage update
@@ -25,5 +26,13 @@ __global__ void rk4NeuronUpdateKernel(GPUNeuronState* neurons, float dt, int N);
 __global__ void updateNeuronVoltages(GPUNeuronState* neurons, 
                                     float* I_leak, float* Cm,
                                     float dt, int N);
+
+/**
+ * CUDA kernel for processing dendritic spikes
+ * @param neurons Array of neuron states
+ * @param current_time Current simulation time
+ * @param N Number of neurons
+ */
+__global__ void dendriticSpikeKernel(GPUNeuronState* neurons, float current_time, int N);
 
 #endif // NEURON_UPDATE_KERNEL_CUH

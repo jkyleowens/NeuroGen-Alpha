@@ -34,8 +34,9 @@ void launchNeuronUpdateKernel(GPUNeuronState* neurons, float dt, int N);
  * @param neurons Array of neuron states
  * @param N Number of neurons
  * @param dt Time step
+ * @param current_time Current simulation time
  */
-void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt);
+void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt, float current_time = 0.0f);
 
 /**
  * Launch kernel for synapse input processing

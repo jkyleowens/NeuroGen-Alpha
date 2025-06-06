@@ -415,7 +415,11 @@ std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_sig
         }
         
         // Update neuron dynamics with RK4
-        launchRK4NeuronUpdateKernel(d_neurons, total_neurons, g_config.dt);
+        launchRK4NeuronUpdateKernel(d_neurons, total_neurons, g_config.dt, current_time);
+        CUDA_CHECK_KERNEL();
+        
+        // Process dendritic spikes
+        launchDendriticSpikeKernel(d_neurons, total_neurons, current_time);
         CUDA_CHECK_KERNEL();
         
         // Detect spikes and update spike flags

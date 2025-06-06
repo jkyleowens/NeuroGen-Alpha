@@ -34,8 +34,9 @@ void launchNeuronUpdateKernel(GPUNeuronState* neurons, float dt, int N);
  * @param neurons Array of neuron states
  * @param N Number of neurons
  * @param dt Time step
+ * @param current_time Current simulation time
  */
-void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt);
+void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt, float current_time);
 
 /**
  * Launch kernel for synapse input processing
@@ -62,5 +63,13 @@ void launchSpikeDetectionKernel(GPUNeuronState* neurons,
                                int* spike_count, 
                                int num_neurons, 
                                float current_time);
+
+/**
+ * Launch kernel for processing dendritic spikes
+ * @param neurons Array of neuron states
+ * @param N Number of neurons
+ * @param current_time Current simulation time
+ */
+void launchDendriticSpikeKernel(GPUNeuronState* neurons, int N, float current_time);
 
 #endif // KERNEL_LAUNCH_WRAPPERS_CUH

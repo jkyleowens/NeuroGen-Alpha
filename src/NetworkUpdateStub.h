@@ -3,7 +3,6 @@
 #define NETWORK_UPDATE_STUB_H
 
 #include <NeuroGen/GPUNeuralStructures.h>
-#include <NeuroGen/cuda/CUDA_Allocators.cuh>
 #include <NeuroGen/cuda/NeuronUpdateKernel.cuh>
 #include <NeuroGen/cuda/KernelLaunchWrappers.cuh>
 

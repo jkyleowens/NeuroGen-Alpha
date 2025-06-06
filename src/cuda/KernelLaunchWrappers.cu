@@ -28,7 +28,7 @@ extern "C" void launchUpdateNeuronVoltages(GPUNeuronState* neurons, float* I_lea
 void launchNeuronUpdateKernel(GPUNeuronState* neurons, float dt, int N) {
     dim3 block = makeSafeBlock(256);
     dim3 grid = makeSafeGrid(N, 256);
-    rk4NeuronUpdateKernel<<<grid, block>>>(neurons, dt, N);
+    rk4NeuronUpdateKernel<<<grid, block>>>(neurons, dt, 0.0f, N);
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
         // Handle error appropriately
@@ -47,10 +47,10 @@ extern "C" void launchSynapseInputKernel(GPUSynapse* d_synapses, GPUNeuronState*
     cudaDeviceSynchronize();
 }
 
-void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt) {
+void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt, float current_time) {
     dim3 block = makeSafeBlock(256);
     dim3 grid = makeSafeGrid(N, 256);
-    rk4NeuronUpdateKernel<<<grid, block>>>(neurons, dt, N);
+    rk4NeuronUpdateKernel<<<grid, block>>>(neurons, dt, current_time, N);
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
         // Handle error appropriately
@@ -63,6 +63,17 @@ void launchSpikeDetectionKernel(GPUNeuronState* neurons, GPUSpikeEvent* spikes, 
     dim3 block = makeSafeBlock(256);
     dim3 grid = makeSafeGrid(num_neurons, 256);
     detectSpikes<<<grid, block>>>(neurons, spikes, threshold, spike_count, num_neurons, current_time);
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        // Handle error appropriately
+    }
+    cudaDeviceSynchronize();
+}
+
+void launchDendriticSpikeKernel(GPUNeuronState* neurons, int N, float current_time) {
+    dim3 block = makeSafeBlock(256);
+    dim3 grid = makeSafeGrid(N, 256);
+    dendriticSpikeKernel<<<grid, block>>>(neurons, current_time, N);
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
         // Handle error appropriately
