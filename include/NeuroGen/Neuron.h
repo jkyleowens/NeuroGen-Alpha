@@ -97,7 +97,44 @@ protected:
      * @brief 4th-order Runge-Kutta integration for gating variables
      */
     template<typename RateFunc>
-    double integrateGating(double y, double V, double dt, RateFunc rateFunc);
+    double integrateGating(double y, double V, double dt, RateFunc rateFunc) {
+        // Safety checks
+        if (!std::isfinite(y) || !std::isfinite(V) || !std::isfinite(dt)) {
+            return std::max(0.0, std::min(y, 1.0)); // Return clamped input if invalid
+        }
+        
+        // Clamp input gating variable
+        y = std::max(0.0, std::min(y, 1.0));
+        
+        auto rates1 = rateFunc(V);
+        double k1 = dt * (rates1.alpha * (1.0 - y) - rates1.beta * y);
+        
+        double y2 = y + k1 / 2.0;
+        y2 = std::max(0.0, std::min(y2, 1.0)); // Clamp intermediate values
+        auto rates2 = rateFunc(V);
+        double k2 = dt * (rates2.alpha * (1.0 - y2) - rates2.beta * y2);
+        
+        double y3 = y + k2 / 2.0;
+        y3 = std::max(0.0, std::min(y3, 1.0));
+        auto rates3 = rateFunc(V);
+        double k3 = dt * (rates3.alpha * (1.0 - y3) - rates3.beta * y3);
+        
+        double y4 = y + k3;
+        y4 = std::max(0.0, std::min(y4, 1.0));
+        auto rates4 = rateFunc(V);
+        double k4 = dt * (rates4.alpha * (1.0 - y4) - rates4.beta * y4);
+        
+        // Check if any k values are invalid
+        if (!std::isfinite(k1) || !std::isfinite(k2) || !std::isfinite(k3) || !std::isfinite(k4)) {
+            return y; // Return original value if integration fails
+        }
+        
+        double result = y + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+        
+        // Final clamp and validity check
+        result = std::max(0.0, std::min(result, 1.0));
+        return std::isfinite(result) ? result : y;
+    }
 };
 
 /**

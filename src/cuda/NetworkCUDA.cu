@@ -5,6 +5,7 @@
 #include <NeuroGen/NetworkConfig.h>
 #include <NeuroGen/NetworkPresets.h>
 #include <NeuroGen/GPUNeuralStructures.h>
+#include <NeuroGen/Network.h> // For NetworkStats
 #include <NeuroGen/cuda/STDPKernel.cuh>
 #include <NeuroGen/cuda/KernelLaunchWrappers.cuh>
 #include <NeuroGen/cuda/RandomStateInit.cuh>
@@ -21,6 +22,8 @@
 // CUDA includes for kernel launch support
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+
+__managed__ Network::NetworkStats g_stats;
 
 // CUDA utility functions
 dim3 getOptimalBlockSize() {
@@ -57,6 +60,8 @@ void safeCudaMemset(T* ptr, int value, size_t count) {
     }
 }
 
+using NetworkStats = Network::NetworkStats;
+
 // Global network state
 static NetworkConfig g_config;
 static GPUNeuronState* d_neurons = nullptr;
@@ -77,23 +82,6 @@ static int total_synapses = 0;
 static int input_start, input_end;
 static int hidden_start, hidden_end;
 static int output_start, output_end;
-
-// Performance monitoring
-struct NetworkStats {
-    float avg_firing_rate = 0.0f;
-    float total_spikes = 0.0f;
-    float avg_weight = 0.0f;
-    float reward_signal = 0.0f;
-    int update_count = 0;
-    
-    void reset() {
-        avg_firing_rate = 0.0f;
-        total_spikes = 0.0f;
-        avg_weight = 0.0f;
-        reward_signal = 0.0f;
-        update_count = 0;
-    }
-};
 
 static NetworkStats g_stats;
 static float current_time = 0.0f;

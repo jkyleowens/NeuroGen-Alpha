@@ -1,5 +1,5 @@
 #include "Neuron.h"
-#include "Network.h"
+#include <NeuroGen/NetworkConfig.h>
 #include <vector>
 #include <memory>
 #include <string>
