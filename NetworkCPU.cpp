@@ -191,7 +191,7 @@ void NetworkCPU::propagateSpikes(float dt) {
             current_time_ - pre_neuron.last_spike_time >= syn.delay) {
             
             // Add synaptic current
-            post_neuron.voltage += syn.weight * config_.synaptic_strength;
+            post_neuron.voltage += syn.weight;
             
             // Update activity metric for STDP
             syn.activity_metric += 1.0f;
