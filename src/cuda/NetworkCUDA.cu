@@ -314,6 +314,8 @@ void createNetworkTopology(std::vector<GPUSynapse>& synapses,
                 syn.delay = delay_dist(gen);
                 syn.last_pre_spike_time = -1000.0f;
                 syn.activity_metric = 0.0f;
+                syn.last_active = 0.0f;
+                syn.eligibility_trace = 0.0f;
                 synapses.push_back(syn);
                 connections_created++;
             }
@@ -340,6 +342,8 @@ void createNetworkTopology(std::vector<GPUSynapse>& synapses,
                 syn.delay = delay_dist(gen);
                 syn.last_pre_spike_time = -1000.0f;
                 syn.activity_metric = 0.0f;
+                syn.last_active = 0.0f;
+                syn.eligibility_trace = 0.0f;
                 synapses.push_back(syn);
                 connections_created++;
             }
@@ -359,6 +363,8 @@ void createNetworkTopology(std::vector<GPUSynapse>& synapses,
             syn.delay = delay_dist(gen);
             syn.last_pre_spike_time = -1000.0f;
             syn.activity_metric = 0.0f;
+            syn.last_active = 0.0f;
+            syn.eligibility_trace = 0.0f;
             synapses.push_back(syn);
             connections_created++;
         }
@@ -544,10 +550,11 @@ void updateSynapticWeightsCUDA(float reward_signal) {
     float A_plus = g_config.A_plus * reward_factor;
     float A_minus = g_config.A_minus * (2.0f - reward_factor); // Inverse for depression
     
-    // Apply STDP with reward modulation
+    // Apply STDP with eligibility traces and reward modulation
     launchSTDPUpdateKernel(d_synapses, d_neurons, total_synapses,
                            A_plus, A_minus, g_config.tau_plus, g_config.tau_minus,
-                           current_time, g_config.min_weight, g_config.max_weight, 
+                           g_config.eligibility_decay, g_config.reward_learning_rate,
+                           current_time, g_config.min_weight, g_config.max_weight,
                            reward_signal);
     CUDA_CHECK_KERNEL();
     

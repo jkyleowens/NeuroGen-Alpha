@@ -50,6 +50,7 @@ struct GPUSynapse {
     float last_potentiation;   // Time of last potentiation
     int post_compartment;      // Target compartment on postsynaptic neuron
     int receptor_index;        // Target receptor type
+    float eligibility_trace;   // Eligibility trace for reinforcement learning
 };
 
 /**

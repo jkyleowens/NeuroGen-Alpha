@@ -6,7 +6,8 @@
 
 __global__ void stdpUpdateKernel(GPUSynapse* synapses, const GPUNeuronState* neurons,
                                 int num_synapses, float A_plus, float A_minus,
-                                float tau_plus, float tau_minus, float current_time,
+                                float tau_plus, float tau_minus, float eligibility_decay,
+                                float learning_rate, float current_time,
                                 float min_weight, float max_weight, float reward_signal) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_synapses) return;
@@ -29,47 +30,44 @@ __global__ void stdpUpdateKernel(GPUSynapse* synapses, const GPUNeuronState* neu
     // Calculate time differences
     float dt_pre_post = t_post - t_pre;
     
-    // Apply STDP rule
+    // STDP update -> eligibility trace
     float dw = 0.0f;
-    
-    // LTP: post after pre (causal)
+
     if (dt_pre_post > 0.0f && dt_pre_post < 50.0f) {
         dw = A_plus * expf(-dt_pre_post / tau_plus);
-    }
-    // LTD: pre after post (acausal)
-    else if (dt_pre_post < 0.0f && dt_pre_post > -50.0f) {
+    } else if (dt_pre_post < 0.0f && dt_pre_post > -50.0f) {
         dw = -A_minus * expf(dt_pre_post / tau_minus);
     }
-    
-    // Apply reward modulation
-    dw *= (1.0f + reward_signal);
-    
-    // Update weight
-    if (dw != 0.0f) {
-        synapse.weight += dw;
-        
-        // Clamp weight to valid range
+
+    // Decay eligibility trace based on time since last update
+    float decay = expf(-(current_time - synapse.last_active) / eligibility_decay);
+    synapse.eligibility_trace *= decay;
+    synapse.eligibility_trace += dw;
+
+    // Reward-modulated weight update
+    float delta_w = learning_rate * reward_signal * synapse.eligibility_trace;
+    if (delta_w != 0.0f) {
+        synapse.weight += delta_w;
         if (synapse.weight < min_weight) synapse.weight = min_weight;
         if (synapse.weight > max_weight) synapse.weight = max_weight;
-        
-        // Update activity metric and last potentiation time
-        if (dw > 0.0f) {
-            synapse.last_potentiation = current_time;
-        }
+        if (delta_w > 0.0f) synapse.last_potentiation = current_time;
     }
+
+    synapse.last_active = current_time;
 }
 
 void launchSTDPUpdateKernel(GPUSynapse* d_synapses, const GPUNeuronState* d_neurons,
                            int num_synapses, float A_plus, float A_minus,
-                           float tau_plus, float tau_minus, float current_time,
+                           float tau_plus, float tau_minus, float eligibility_decay,
+                           float learning_rate, float current_time,
                            float min_weight, float max_weight, float reward_signal) {
     dim3 block = makeBlock();
     dim3 grid = makeGrid(num_synapses);
     
     stdpUpdateKernel<<<grid, block>>>(d_synapses, d_neurons, num_synapses,
                                      A_plus, A_minus, tau_plus, tau_minus,
-                                     current_time, min_weight, max_weight,
-                                     reward_signal);
+                                     eligibility_decay, learning_rate, current_time,
+                                     min_weight, max_weight, reward_signal);
     
     cudaDeviceSynchronize();
 }
