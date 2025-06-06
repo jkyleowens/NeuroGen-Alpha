@@ -574,9 +574,11 @@ private:
 
     #ifdef USE_CUDA
     // Performance tracking for optional CUDA path
+    // Performance tracking for optional CUDA path
     std::chrono::high_resolution_clock::time_point last_cuda_sync_;
     double cuda_compute_time_;
     double cpu_compute_time_;
+    #endif
     #endif
 };
 

@@ -30,11 +30,13 @@
 #ifdef USE_CUDA
 #if USE_CUDA
 #include "NeuroGen/cuda/NetworkCUDA.cuh"
+
 #endif
 #endif
 
 #include <NeuroGen/Neuron.h>
 #include <NeuroGen/NetworkConfig.h>
+#include <NeuroGen/cuda/
 
 // Optional JSON support - disabled for now to avoid dependency issues
 // #define USE_JSON_CONFIG
@@ -47,6 +49,7 @@ class Neuron;
 class Compartment;
 class IonChannel;
 class SynapticReceptor;
+class NetworkCUDA;
 
 /**
  * @brief 3D position structure for spatial neuron organization
@@ -579,10 +582,6 @@ private:
     double cpu_compute_time_;
     #endif
 };
-
-#ifdef USE_CUDA
-extern __managed__ Network::NetworkStats g_stats;
-#endif
 
 /**
  * @brief Network builder for easy network construction
