@@ -83,7 +83,6 @@ static int input_start, input_end;
 static int hidden_start, hidden_end;
 static int output_start, output_end;
 
-static NetworkStats g_stats;
 static float current_time = 0.0f;
 static bool network_initialized = false;
 

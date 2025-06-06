@@ -324,6 +324,26 @@ public:
         size_t active_neurons;
         size_t total_synapses;
         double mean_synaptic_strength;
+
+        // GPU-focused metrics
+        float total_spikes{0};
+        float avg_weight{0};
+        float reward_signal{0};
+        int update_count{0};
+
+        void reset() {
+            mean_firing_rate = 0.0;
+            network_synchrony = 0.0;
+            mean_connectivity = 0.0;
+            excitation_inhibition_ratio = 0.0;
+            active_neurons = 0;
+            total_synapses = 0;
+            mean_synaptic_strength = 0.0;
+            total_spikes = 0.0f;
+            avg_weight = 0.0f;
+            reward_signal = 0.0f;
+            update_count = 0;
+        }
     };
     
     NetworkStats calculateNetworkStats(double time_window = 1000.0) const;
@@ -553,16 +573,11 @@ private:
     void logStructuralChange(const std::string& type, const std::string& details) const;
 
     #ifdef USE_CUDA
-    // CUDA acceleration components
-    std::unique_ptr<NetworkCUDA> cuda_accelerator_;
-    bool use_cuda_;
-    bool cuda_data_uploaded_;
-
-    // Performance tracking
+    // Performance tracking for optional CUDA path
     std::chrono::high_resolution_clock::time_point last_cuda_sync_;
     double cuda_compute_time_;
     double cpu_compute_time_;
-#endif
+    #endif
 };
 
 #ifdef USE_CUDA
