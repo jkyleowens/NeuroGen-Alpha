@@ -85,9 +85,9 @@ static int output_start, output_end;
 // conflicts when the header was included).  This also ensures that the
 // structure used in host code and device code remain consistent.
 
-static NetworkStats g_stats;
+static CudaNetworkStats g_stats;
 
-static void resetNetworkStats(NetworkStats &stats) {
+static void resetNetworkStats(CudaNetworkStats &stats) {
     stats.avg_firing_rate = 0.0f;
     stats.total_spikes    = 0.0f;
     stats.avg_weight      = 0.0f;
@@ -601,7 +601,7 @@ void printNetworkStats() {
     std::cout << "=========================" << std::endl;
 }
 
-NetworkStats getNetworkStats() {
+CudaNetworkStats getNetworkStats() {
     return g_stats;
 }
 

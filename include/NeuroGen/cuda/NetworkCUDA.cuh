@@ -56,7 +56,7 @@ __global__ void applyHomeostaticScalingKernel(GPUSynapse* synapses, int num_syna
 __global__ void validateNeuronStates(GPUNeuronState* neurons, int num_neurons, bool* is_valid);
 
 // Statistics collected on the GPU network state
-struct NetworkStats {
+struct CudaNetworkStats {
     float avg_firing_rate;
     float total_spikes;
     float avg_weight;
@@ -65,7 +65,7 @@ struct NetworkStats {
 };
 
 // Retrieve the latest statistics from the GPU implementation
-NetworkStats getNetworkStats();
+CudaNetworkStats getNetworkStats();
 
 struct NetworkPerformance {
     float forward_pass_time_ms;

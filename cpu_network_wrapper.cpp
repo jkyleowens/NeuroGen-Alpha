@@ -29,8 +29,8 @@ void cleanupNetwork() {
     }
 }
 
-NetworkStats getNetworkStats() {
-    NetworkStats stats{};
+CudaNetworkStats getNetworkStats() {
+    CudaNetworkStats stats{};
     return stats;
 }
 
