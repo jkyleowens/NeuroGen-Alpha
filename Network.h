@@ -29,6 +29,7 @@
 
 #if defined(USE_CUDA) && USE_CUDA
 #include "NeuroGen/cuda/NetworkCUDA.cuh"
+#include "NeuroGen/cuda/CudaNetworkAccelerator.h"
 #endif
 
 #include "Neuron.h"
