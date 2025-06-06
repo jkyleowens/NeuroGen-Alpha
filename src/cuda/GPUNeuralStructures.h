@@ -134,9 +134,17 @@ struct GPUNeuronState {
     bool needs_update;                  // Whether neuron needs updating
     int update_priority;                // Update priority (0=low, 1=high)
     
-    // ========================================
-    // DEBUGGING AND MONITORING
-    // ========================================#ifndef GPU_NEURAL_STRUCTURES_H
+    // === PHASE 4: NEUROMODULATION STATE ===
+    float dopamine_level;               // Local dopamine concentration
+    float acetylcholine_level;          // Local acetylcholine concentration
+    float serotonin_level;              // Local serotonin concentration
+    float noradrenaline_level;          // Local noradrenaline concentration
+
+    // Neuromodulatory effects on this neuron
+    float neuromod_excitability;        // Overall excitability modulation (e.g., affects threshold)
+    float neuromod_adaptation;          // Modulation of spike-frequency adaptation
+};
+
 
 /**
  * GPU-optimized structure for synapses
@@ -169,6 +177,34 @@ struct GPUSynapse {
     float plasticity_rate;     // Learning rate for this synapse
     float meta_weight;         // Metaplastic weight (controls plasticity threshold)
     float recent_activity;     // Measure of recent activity
+
+    float eligibility_trace;           // Fast trace for immediate spike-timing events (e.g., STDP)
+    float medium_trace;                // Medium-term trace for short-term memory consolidation (seconds)
+    float slow_trace;                  // Slow trace for long-term structural plasticity (minutes to hours)
+
+    // Synaptic tagging for late-phase, protein synthesis-dependent plasticity
+    float tag_strength;                // Marks the synapse as a candidate for long-term change
+
+    // Calcium-dependent plasticity drivers
+    float calcium_trace;               // Tracks recent local calcium levels in the target compartment
+
+    // Neuromodulation sensitivity
+    float dopamine_sensitivity;        // Synapse-specific sensitivity to reward signals
+    float plasticity_modulation;       // Current modulation factor from neuromodulators
+
+    // Homeostatic variables
+    float homeostatic_scaling_factor;  // Multiplicative scaling factor for stability
+
+    // === PHASE 4: NEUROMODULATION SENSITIVITY & EFFECTS ===
+    
+    // Sensitivity to different neuromodulators (can be learned over time)
+    float dopamine_sensitivity;        // Default: 1.0
+    float acetylcholine_sensitivity;   // Default: 1.0
+    float serotonin_sensitivity;       // Default: 1.0
+    float noradrenaline_sensitivity;   // Default: 1.0
+
+    // The final, combined effect of neuromodulators on plasticity
+    float plasticity_modulation;       // Multiplier for the learning rate
 };
 
 /**

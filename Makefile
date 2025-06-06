@@ -1,149 +1,90 @@
-# Makefile for NeuroGen Alpha project with updated directory structure
-# Check for nvcc in PATH and error out if missing
-NVCC_PATH := $(shell which nvcc)
-ifeq ($(NVCC_PATH),)
-$(error "nvcc not found in PATH. Please install the CUDA toolkit and ensure `nvcc` is in your PATH.")
-else
-NVCC := $(NVCC_PATH)
-endif
+# =============================================================================
+# Makefile for NeuroGen-Alpha Project
+#
+# This Makefile handles the compilation of both C++ and CUDA source files,
+# linking them into a final executable for the neural trading agent.
+#
+# Targets:
+#   all           - (Default) Compiles the entire project.
+#   install_headers - Copies all source headers to the include/ directory.
+#   clean         - Removes all compiled object files and the final executable.
+#
+# =============================================================================
 
-# Compiler and CUDA configuration
-CUDA_HOME ?= /usr/local/cuda
+# --- Compiler and Tool Definitions ---
+CXX := g++
+NVCC := nvcc
+EXEC := neurogen_trader
 
-# Include and library directories
-INCLUDE_DIRS := -I./include -I./include/NeuroGen -I./include/NeuroGen/cuda -I$(CUDA_HOME)/include
-LIB_DIRS := -L$(CUDA_HOME)/lib64
-
-# Compilation flags
-CXXFLAGS := -std=c++17 -O2 $(INCLUDE_DIRS) --expt-relaxed-constexpr -DUSE_CUDA=1
-LDFLAGS := $(LIB_DIRS) -lcudart -lcurand
-
-# Directory structure
+# --- Directories ---
 SRC_DIR := src
-SRC_CUDA_DIR := $(SRC_DIR)/cuda
 OBJ_DIR := obj
-BIN_DIR := bin
-TEST_DIR := tests
 INCLUDE_DIR := include
+CUDA_SRC_DIR := $(SRC_DIR)/cuda
 
-# Make sure the directories exist
-$(shell mkdir -p $(OBJ_DIR))
-$(shell mkdir -p $(BIN_DIR))
-$(shell mkdir -p $(OBJ_DIR)/cuda)
-$(shell mkdir -p $(INCLUDE_DIR)/NeuroGen)
-$(shell mkdir -p $(INCLUDE_DIR)/NeuroGen/cuda)
+# --- Compiler Flags ---
+# Adjust -arch=sm_XX to match your GPU's compute capability.
+# sm_75 (Turing), sm_86 (Ampere), sm_90 (Ada Lovelace) are common.
+NVCCFLAGS := -O3 -std=c++17 -arch=sm_75 -Xcompiler -Wall,-Wno-unused-function
+CXXFLAGS := -O3 -std=c++17 -Wall -g
+LDFLAGS := -L/usr/local/cuda/lib64
+INCLUDES := -I./$(INCLUDE_DIR)
+LIBS := -lcudart -lrt
 
-# Source files
-CU_SRCS = $(wildcard $(SRC_CUDA_DIR)/*.cu)
-CPP_SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+# --- Source Files ---
+# Automatically find all .cpp and .cu files in the source directories.
+SRCS_CPP := $(wildcard $(SRC_DIR)/*.cpp)
+SRCS_CU := $(wildcard $(CUDA_SRC_DIR)/*.cu)
 
-# Object files
-CU_OBJS = $(patsubst $(SRC_CUDA_DIR)/%.cu,$(OBJ_DIR)/cuda/%.o,$(CU_SRCS))
-CPP_OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SRCS))
+# --- Object Files ---
+# Generate object file names by replacing src/ with obj/ and extensions with .o
+OBJS_CPP := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS_CPP))
+OBJS_CU := $(patsubst $(CUDA_SRC_DIR)/%.cu, $(OBJ_DIR)/%.o, $(SRCS_CU))
+OBJS := $(OBJS_CPP) $(OBJS_CU)
 
-# Target binary
-TARGET = $(BIN_DIR)/neural_sim
+# --- Phony Targets (commands that don't produce a file with the same name) ---
+.PHONY: all clean install_headers
 
-# Main targets
-.PHONY: all clean test setup headers
+# --- Main Build Target ---
+all: install_headers $(EXEC)
 
-all: setup headers $(TARGET)
+# --- Linking Rule ---
+# This rule links all compiled .o files into the final executable.
+$(EXEC): $(OBJS)
+	@echo "==> Linking executable: $@"
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS) $(LIBS)
+	@echo "==> Build complete. Executable created: $(EXEC)"
 
-# Setup directory structure and copy headers
-setup:
-	@mkdir -p $(INCLUDE_DIR)/NeuroGen/cuda
-	@echo "Directory structure created"
+# --- CUDA Compilation Rule ---
+# This rule compiles .cu files into .o files.
+$(OBJ_DIR)/%.o: $(CUDA_SRC_DIR)/%.cu
+	@mkdir -p $(@D)
+	@echo "==> Compiling CUDA: $<"
+	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -c $< -o $@
 
-# Copy headers to proper include directory structure
-headers:
-	@echo "Setting up header files..."
-	@if [ -f "src/cuda/GPUNeuralStructures.h" ]; then cp src/cuda/GPUNeuralStructures.h $(INCLUDE_DIR)/NeuroGen/; fi
-	@if [ -f "src/cuda/NetworkCUDA.cuh" ]; then cp src/cuda/NetworkCUDA.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/STDPKernel.cuh" ]; then cp src/cuda/STDPKernel.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/NeuronUpdateKernel.cuh" ]; then cp src/cuda/NeuronUpdateKernel.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/NeuronSpikingKernels.cuh" ]; then cp src/cuda/NeuronSpikingKernels.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/KernelLaunchWrappers.cuh" ]; then cp src/cuda/KernelLaunchWrappers.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/SynapseInputKernel.cuh" ]; then cp src/cuda/SynapseInputKernel.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/RandomStateInit.cuh" ]; then cp src/cuda/RandomStateInit.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/GridBlockUtils.cuh" ]; then cp src/cuda/GridBlockUtils.cuh $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/CorticalColumn.h" ]; then cp src/cuda/CorticalColumn.h $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/CudaCompatibility.h" ]; then cp src/cuda/CudaCompatibility.h $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/cuda/CudaUtils.h" ]; then cp src/cuda/CudaUtils.h $(INCLUDE_DIR)/NeuroGen/cuda/; fi
-	@if [ -f "src/NetworkConfig.h" ]; then cp src/NetworkConfig.h $(INCLUDE_DIR)/NeuroGen/; fi
-	@if [ -f "src/NetworkPresets.h" ]; then cp src/NetworkPresets.h $(INCLUDE_DIR)/NeuroGen/; fi
-	@if [ -f "src/TopologyGenerator.h" ]; then cp src/TopologyGenerator.h $(INCLUDE_DIR)/NeuroGen/; fi
-	@if [ -f "src/Network.h" ]; then cp src/Network.h $(INCLUDE_DIR)/NeuroGen/; fi
-	@if [ -f "src/Neuron.h" ]; then cp src/Neuron.h $(INCLUDE_DIR)/NeuroGen/; fi
-	@if [ -f "src/IonChannelModels.h" ]; then cp src/IonChannelModels.h $(INCLUDE_DIR)/NeuroGen/; fi
-	@if [ -f "src/IonChannelConstants.h" ]; then cp src/IonChannelConstants.h $(INCLUDE_DIR)/NeuroGen/; fi
-	@echo "Headers copied to include directory"
-
-# Link all object files, including main.cpp
-$(TARGET): $(CU_OBJS) $(CPP_OBJS) $(OBJ_DIR)/main.o
-	@mkdir -p $(BIN_DIR)
-	$(NVCC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-	@echo "Build complete: $@"
-
-# Compile CUDA sources
-$(OBJ_DIR)/cuda/%.o: $(SRC_CUDA_DIR)/%.cu
-	@mkdir -p $(OBJ_DIR)/cuda
-	$(NVCC) $(CXXFLAGS) -dc $< -o $@
-
-# Compile C++ sources  
+# --- C++ Compilation Rule ---
+# This rule compiles .cpp files into .o files.
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(OBJ_DIR)
-	$(NVCC) $(CXXFLAGS) -c $< -o $@
+	@mkdir -p $(@D)
+	@echo "==> Compiling C++: $<"
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
-# Special rule for main.cpp
-$(OBJ_DIR)/main.o: main.cpp
-	@mkdir -p $(OBJ_DIR)
-	$(NVCC) $(CXXFLAGS) -c $< -o $@
+# --- Header Installation Rule ---
+# This rule finds all .h and .cuh files and copies them to the include/ directory,
+# preserving their subdirectory structure (e.g., cuda/).
+install_headers:
+	@echo "==> Installing headers..."
+	@mkdir -p $(INCLUDE_DIR)/NeuroGen/cuda
+	@find $(SRC_DIR) -name "*.h" -not -path "$(CUDA_SRC_DIR)/*" -exec cp --parents {} $(INCLUDE_DIR)/NeuroGen/ \;
+	@find $(CUDA_SRC_DIR) -name "*.h" -exec cp --parents {} $(INCLUDE_DIR)/NeuroGen/ \;
+	@find $(CUDA_SRC_DIR) -name "*.cuh" -exec cp --parents {} $(INCLUDE_DIR)/NeuroGen/ \;
+	@echo "==> Headers installed in $(INCLUDE_DIR)/NeuroGen"
 
-# Test binary
-TEST_TARGET = $(BIN_DIR)/test_network
-TEST_SRCS = $(TEST_DIR)/test_network.cpp
-TEST_OBJS = $(patsubst $(TEST_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(TEST_SRCS))
 
-test: setup headers $(TEST_TARGET)
-
-$(TEST_TARGET): $(TEST_OBJS) $(CU_OBJS)
-	@mkdir -p $(BIN_DIR)
-	$(NVCC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-	@echo "Test build complete: $@"
-
-$(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
-	@mkdir -p $(OBJ_DIR)
-	$(NVCC) $(CXXFLAGS) -c $< -o $@
-
+# --- Cleanup Rule ---
+# This rule removes the executable and all object files.
 clean:
-	rm -rf $(OBJ_DIR)/*
-	rm -rf $(INCLUDE_DIR)/*
-	rm -f $(TARGET) $(TEST_TARGET)
-	@echo "Clean complete"
-
-# Print info for debugging
-info:
-	@echo "NVCC: $(NVCC)"
-	@echo "CUDA_HOME: $(CUDA_HOME)"
-	@echo "INCLUDE_DIRS: $(INCLUDE_DIRS)"
-	@echo "CUDA sources: $(CU_SRCS)"
-	@echo "C++ sources: $(CPP_SRCS)"
-	@echo "CUDA objects: $(CU_OBJS)"
-	@echo "C++ objects: $(CPP_OBJS)"
-
-# Check CUDA installation
-check-cuda:
-	@echo "Checking CUDA installation..."
-	@$(NVCC) --version
-	@echo "CUDA devices:"
-	@nvidia-smi -L 2>/dev/null || echo "nvidia-smi not found or no devices"
-
-# Create minimal test to verify compilation
-minimal-test:
-	@echo "Creating minimal test..."
-	@echo '#include <iostream>' > minimal_test.cpp
-	@echo '#include <cuda_runtime.h>' >> minimal_test.cpp
-	@echo 'int main() { std::cout << "CUDA test passed" << std::endl; return 0; }' >> minimal_test.cpp
-	$(NVCC) $(CXXFLAGS) minimal_test.cpp -o $(BIN_DIR)/minimal_test $(LDFLAGS)
-	@echo "Minimal test compiled successfully"
-	@rm minimal_test.cpp
+	@echo "==> Cleaning up build files..."
+	rm -f $(EXEC)
+	rm -rf $(OBJ_DIR)
+	@echo "==> Cleanup complete."
