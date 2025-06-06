@@ -23,7 +23,7 @@ $(shell mkdir -p $(INCLUDE_DIR)/NeuroGen)
 
 # CPU source files (exclude CUDA files)
 CPP_SRCS := $(filter-out $(SRC_DIR)/cuda/%, $(wildcard $(SRC_DIR)/*.cpp))
-MAIN_SRCS := main.cpp Network.cpp Neuron.cpp NetworkCPU.cpp
+MAIN_SRCS := main.cpp Network.cpp Neuron.cpp NetworkCPU.cpp cpu_network_wrapper.cpp
 
 # Object files
 CPP_OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SRCS))

@@ -11,8 +11,12 @@
 #include <chrono>
 #include <cmath>
 
+#if defined(USE_CUDA) && USE_CUDA
 #include <cuda_runtime.h>
 #include <NeuroGen/cuda/NetworkCUDA.cuh>
+#else
+#include "cpu_network_wrapper.h"
+#endif
 
 // Enhanced Portfolio Management System
 class TradingPortfolio {
@@ -390,11 +394,15 @@ int main(int argc, char* argv[]) {
         std::cout << "===========================================" << std::endl;
 
         int device_count = 0;
+#if defined(USE_CUDA) && USE_CUDA
         cudaError_t cuda_status = cudaGetDeviceCount(&device_count);
         if (cuda_status != cudaSuccess || device_count == 0) {
             std::cerr << "[ERROR] No CUDA-capable device detected. Exiting." << std::endl;
             return 1;
         }
+#else
+        (void)device_count; // suppress unused warning
+#endif
         
         // Load available data files
         auto data_files = getAvailableDataFiles(data_dir);
@@ -413,7 +421,7 @@ int main(int argc, char* argv[]) {
         float dopamine_level = 0.0f;
         
         // Initialize neural network on CUDA
-        std::cout << "[INIT] Initializing CUDA neural network..." << std::endl;
+        std::cout << "[INIT] Initializing neural network..." << std::endl;
         initializeNetwork();
         
         // Random number generation for file shuffling
