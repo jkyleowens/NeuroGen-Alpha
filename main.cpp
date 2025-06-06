@@ -413,7 +413,7 @@ int main(int argc, char* argv[]) {
         float dopamine_level = 0.0f;
         
         // Initialize neural network on CUDA
-        std::cout << "[INIT] Initializing CUDA neural network..." << std::endl;
+        std::cout << "[INIT] Initializing neural network..." << std::endl;
         initializeNetwork();
         
         // Random number generation for file shuffling

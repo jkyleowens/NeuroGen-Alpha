@@ -27,7 +27,7 @@
 #include <algorithm>
 #include <chrono>
 
-#ifdef USE_CUDA
+#if defined(USE_CUDA) && USE_CUDA
 #include "NeuroGen/cuda/NetworkCUDA.cuh"
 #endif
 
@@ -603,7 +603,7 @@ private:
      */
     void logStructuralChange(const std::string& type, const std::string& details) const;
 
-    #ifdef USE_CUDA
+    #if defined(USE_CUDA) && USE_CUDA
     // CUDA acceleration components
     std::unique_ptr<CudaNetworkAccelerator> cuda_accelerator_;
     bool use_cuda_;
@@ -613,7 +613,7 @@ private:
     std::chrono::high_resolution_clock::time_point last_cuda_sync_;
     double cuda_compute_time_;
     double cpu_compute_time_;
-#endif
+    #endif
 };
 
 /**
