@@ -23,7 +23,8 @@ struct GPUNeuronState;
  */
 __global__ void stdpUpdateKernel(GPUSynapse* d_synapses, const GPUNeuronState* d_neurons,
                                 int num_synapses, float A_plus, float A_minus,
-                                float tau_plus, float tau_minus, float current_time,
+                                float tau_plus, float tau_minus, float eligibility_decay,
+                                float learning_rate, float current_time,
                                 float min_weight, float max_weight, float reward_signal);
 
 #ifdef __cplusplus
@@ -46,7 +47,8 @@ extern "C" {
  */
 void launchSTDPUpdateKernel(GPUSynapse* d_synapses, const GPUNeuronState* d_neurons,
                            int num_synapses, float A_plus, float A_minus,
-                           float tau_plus, float tau_minus, float current_time,
+                           float tau_plus, float tau_minus, float eligibility_decay,
+                           float learning_rate, float current_time,
                            float min_weight, float max_weight, float reward_signal);
 
 #ifdef __cplusplus
