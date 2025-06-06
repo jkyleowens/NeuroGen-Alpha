@@ -516,7 +516,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Portfolio Value: $" << std::setprecision(2) << portfolio.getTotalValue() << std::endl;
 
             // Log metrics for this epoch
-            NetworkStats stats = getNetworkStats();
+            CudaNetworkStats stats = getNetworkStats();
             metrics_file << epoch << ',' << portfolio.getTotalValue() << ',' << epoch_return << ','
                          << dopamine_level << ',' << (stats.update_count > 0 ? stats.update_count : 0)
                          << ',' << getNetworkConfig().totalSynapses << '\n';
