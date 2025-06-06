@@ -326,10 +326,10 @@ public:
         double mean_synaptic_strength;
 
         // GPU-focused metrics
-        float total_spikes{0};
-        float avg_weight{0};
-        float reward_signal{0};
-        int update_count{0};
+        float total_spikes;
+        float avg_weight;
+        float reward_signal;
+        int update_count;
 
         void reset() {
             mean_firing_rate = 0.0;
@@ -574,9 +574,11 @@ private:
 
     #ifdef USE_CUDA
     // Performance tracking for optional CUDA path
+    // Performance tracking for optional CUDA path
     std::chrono::high_resolution_clock::time_point last_cuda_sync_;
     double cuda_compute_time_;
     double cpu_compute_time_;
+    #endif
     #endif
 };
 
