@@ -2,88 +2,41 @@
 #ifndef NETWORK_CUDA_CUH
 #define NETWORK_CUDA_CUH
 
-#include <vector>
-#include <random>
-#include <chrono>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-#include <NeuroGen/cuda/CudaUtils.h>
-#include <NeuroGen/NetworkConfig.h>
-#include <NeuroGen/NetworkPresets.h>
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
-#include <NeuroGen/cuda/NeuronUpdateKernel.cuh>
-#include <NeuroGen/cuda/NeuronSpikingKernels.cuh>
-#include <NeuroGen/cuda/SynapseInputKernel.cuh>
-#include <NeuroGen/cuda/EnhancedSTDPKernel.cuh>
-#include <NeuroGen/cuda/HomeostaticMechanismsKernel.cuh>
-#include <NeuroGen/cuda/KernelLaunchWrappers.cuh>
-#include <NeuroGen/cuda/RandomStateInit.cuh>
+#include <curand_kernel.h>
 
+#include <vector>
+#include <iostream>
+#include <stdexcept>
+#include <algorithm>
+#include <memory>
+#include <chrono>
+
+// Include the NetworkConfig definition
+#include <NeuroGen/NetworkConfig.h>
+
+// Forward declarations for GPU structures
 struct GPUNeuronState;
 struct GPUSynapse;
 struct GPUCorticalColumn;
 
-// Main interface functions for the neural network
-extern "C" {
-    // Core network operations
-    void initializeNetwork();
-    std::vector<float> forwardCUDA(const std::vector<float>& input, float reward_signal);
-    void updateSynapticWeightsCUDA(float reward_signal);
-    void cleanupNetwork();
+// Network statistics structure
+struct NetworkStats {
+    int total_spikes;
+    float average_firing_rate;
+    float current_reward;
+    float total_simulation_time;
     
-    // Configuration and monitoring
-    void setNetworkConfig(const NetworkConfig& config);
-    NetworkConfig getNetworkConfig();
-    void printNetworkStats();
-    std::vector<float> getNeuromodulatorLevels();
-    
-    // Advanced features
-    void saveNetworkState(const std::string& filename);
-    void loadNetworkState(const std::string& filename);
-    void resetNetwork();
-
-}
-
-// Internal helper functions (not exposed to main.cpp)
-namespace NetworkCUDAInternal {
-    void createNetworkTopology(std::vector<GPUSynapse>& synapses,
-                               const std::vector<GPUCorticalColumn>& columns,
-                               std::mt19937& gen);
-    std::vector<float> applySoftmax(const std::vector<float>& input);
-    void updateNetworkStatistics();
-    void applyHomeostaticScaling();
-    void validateInputs(const std::vector<float>& input, float reward_signal);
-}
-
-
-
-// CUDA kernel declarations for internal use
-__global__ void injectInputCurrentImproved(GPUNeuronState* neurons, const float* input_data, 
-                                          int input_size, float current_time, float scale);
-__global__ void extractOutputImproved(const GPUNeuronState* neurons, float* output_buffer,
-                                     int output_size, float current_time);
-__global__ void applyRewardModulationImproved(GPUNeuronState* neurons, int num_neurons, float reward);
-__global__ void computeNetworkStatistics(const GPUNeuronState* neurons, const GPUSynapse* synapses,
-                                        int num_neurons, int num_synapses, float* stats);
-__global__ void resetSpikeFlags(GPUNeuronState* neurons, int num_neurons);
-__global__ void applyHomeostaticScalingKernel(GPUSynapse* synapses, int num_synapses, 
-                                             float scale_factor, float target_rate, float current_rate);
-__global__ void validateNeuronStates(GPUNeuronState* neurons, int num_neurons, bool* is_valid);
-
-// Network performance tracking structure
-struct NetworkPerformance {
-    float forward_pass_time_ms;
-    float learning_time_ms;
-    float total_simulation_time_ms;
-    int total_decisions_made;
-    float average_decision_confidence;
-    
-    void reset();
-    void update(float forward_time, float learning_time);
-    void print() const;
+    void reset() {
+        total_spikes = 0;
+        average_firing_rate = 0.0f;
+        current_reward = 0.0f;
+        total_simulation_time = 0.0f;
+    }
 };
 
-// Error handling and validation
+// Error handling
 enum class NetworkError {
     NONE,
     CUDA_ERROR,
@@ -109,54 +62,128 @@ public:
     NetworkError getErrorCode() const { return error_code_; }
 };
 
-// Utility macros for the network implementation
-#define NETWORK_CHECK(condition, error_code, message) \
-    do { \
-        if (!(condition)) { \
-            throw NetworkException(error_code, message); \
-        } \
-    } while(0)
+// Constants
+namespace NetworkConstants {
+    constexpr float DEFAULT_DT = 0.01f;
+    constexpr float DEFAULT_SPIKE_THRESHOLD = -40.0f;
+    constexpr float DEFAULT_RESTING_POTENTIAL = -65.0f;
+    constexpr float MIN_WEIGHT_CONST = -2.0f;
+    constexpr float MAX_WEIGHT_CONST = 2.0f;
+    constexpr float MIN_DELAY = 0.1f;
+    constexpr float MAX_DELAY = 20.0f;
+    constexpr int MAX_SIMULATION_STEPS = 10000;
+    constexpr int MAX_NEURONS = 100000;
+    constexpr int MAX_SYNAPSES = 10000000;
+}
 
-#define NETWORK_CUDA_CHECK(call, message) \
+// Neuron and synapse type constants
+#ifndef SYNAPSE_EXCITATORY
+#define SYNAPSE_EXCITATORY 0
+#define SYNAPSE_INHIBITORY 1
+#endif
+
+#ifndef NEURON_EXCITATORY
+#define NEURON_EXCITATORY 0
+#define NEURON_INHIBITORY 1
+#define NEURON_REWARD_PREDICTION 2
+#endif
+
+// Main NetworkCUDA class
+class NetworkCUDA {
+public:
+    // Constructor and destructor
+    explicit NetworkCUDA(const NetworkConfig& config);
+    ~NetworkCUDA();
+    
+    // Copy/move constructors (deleted to prevent accidental copying)
+    NetworkCUDA(const NetworkCUDA&) = delete;
+    NetworkCUDA& operator=(const NetworkCUDA&) = delete;
+    NetworkCUDA(NetworkCUDA&&) = delete;
+    NetworkCUDA& operator=(NetworkCUDA&&) = delete;
+    
+    // Core network operations
+    void update(float dt_ms, const std::vector<float>& input_currents, float reward);
+    std::vector<float> getOutput() const;
+    void reset();
+    
+    // Network state queries
+    int getNumNeurons() const { return config.numColumns * config.neuronsPerColumn; }
+    int getNumSynapses() const { return static_cast<int>(config.totalSynapses); }
+    float getCurrentTime() const { return current_time_ms; }
+    NetworkStats getStats() const;
+    
+    // Network configuration
+    void setLearningRate(float rate);
+    void setRewardSignal(float reward);
+    void enablePlasticity(bool enable);
+    
+    // Debug and monitoring
+    void printNetworkState() const;
+    std::vector<float> getNeuronVoltages() const;
+    std::vector<float> getSynapticWeights() const;
+
+private:
+    // Network configuration
+    NetworkConfig config;
+    
+    // Device memory pointers
+    GPUNeuronState* d_neurons;
+    GPUSynapse* d_synapses;
+    float* d_calcium_levels;
+    int* d_neuron_spike_counts;
+    curandState* d_random_states;
+    GPUCorticalColumn* d_cortical_columns;
+    float* d_input_currents;  // Device memory for input data
+    
+    // Network state
+    float current_time_ms;
+    bool network_initialized;
+    bool plasticity_enabled;
+    float current_learning_rate;
+    
+    // Private methods
+    void initializeNetwork();
+    void initializeColumns();
+    void generateDistanceBasedSynapses();
+    void cleanup();
+    void allocateDeviceMemory();
+    void initializeDeviceArrays();
+    void calculateGridBlockSize(int n_elements, dim3& grid, dim3& block) const;
+    
+    // Kernel wrapper methods
+    void updateNeuronsWrapper(float dt_ms);
+    void updateSynapsesWrapper(float dt_ms);
+    void applyPlasticityWrapper(float reward);
+    void processSpikingWrapper();
+    
+    // Validation methods
+    void validateConfig() const;
+    void checkCudaErrors() const;
+
+    void updateNetworkStatistics();
+};
+
+// Global network statistics (managed memory)
+extern __managed__ NetworkStats g_stats;
+
+// Utility macros
+#define CUDA_CHECK_ERROR(call) \
     do { \
         cudaError_t error = call; \
         if (error != cudaSuccess) { \
-            std::string full_message = std::string(message) + ": " + cudaGetErrorString(error); \
-            throw NetworkException(NetworkError::CUDA_ERROR, full_message); \
+            throw NetworkException(NetworkError::CUDA_ERROR, \
+                std::string("CUDA error: ") + cudaGetErrorString(error)); \
         } \
     } while(0)
 
-// Network configuration constants
-namespace NetworkConstants {
-    constexpr float DEFAULT_DT = 0.01f;                    // 10 μs time step
-    constexpr float DEFAULT_SPIKE_THRESHOLD = -40.0f;     // mV
-    constexpr float DEFAULT_RESTING_POTENTIAL = -65.0f;   // mV
-    constexpr float MIN_WEIGHT_CONST = -2.0f;                    // Minimum synaptic weight
-    constexpr float MAX_WEIGHT_CONST = 2.0f;                     // Maximum synaptic weight
-    constexpr float MIN_DELAY = 0.1f;                      // Minimum synaptic delay (ms)
-    constexpr float MAX_DELAY = 20.0f;                     // Maximum synaptic delay (ms)
-    constexpr int MAX_SIMULATION_STEPS = 10000;           // Safety limit
-    constexpr int MAX_NEURONS = 100000;                   // Memory safety limit
-    constexpr int MAX_SYNAPSES = 10000000;                // Memory safety limit
-}
-
-// Performance profiling utilities
-class NetworkProfiler {
-private:
-    std::chrono::high_resolution_clock::time_point start_time_;
-    std::vector<float> timing_data_;
-    bool is_profiling_;
-    
-public:
-    NetworkProfiler() : is_profiling_(false) {}
-    
-    void startProfiling();
-    void endProfiling();
-    void recordTiming(const std::string& operation_name);
-    void printReport() const;
-    void reset();
-    
-    bool isProfiling() const { return is_profiling_; }
-};
+#define CUDA_KERNEL_CHECK() \
+    do { \
+        cudaError_t error = cudaGetLastError(); \
+        if (error != cudaSuccess) { \
+            throw NetworkException(NetworkError::CUDA_ERROR, \
+                std::string("CUDA kernel error: ") + cudaGetErrorString(error)); \
+        } \
+        cudaDeviceSynchronize(); \
+    } while(0)
 
 #endif // NETWORK_CUDA_CUH

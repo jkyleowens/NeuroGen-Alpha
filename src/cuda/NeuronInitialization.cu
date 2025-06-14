@@ -1,5 +1,5 @@
 #include <NeuroGen/cuda/NeuronInitialization.cuh>
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <NeuroGen/GPUNeuralStructures.h>
 #include <NeuroGen/cuda/NeuronModelConstants.h>
 #include <NeuroGen/IonChannelConstants.h>
 #include <NeuroGen/LearningRuleConstants.h>

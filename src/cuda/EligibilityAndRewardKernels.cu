@@ -1,114 +1,164 @@
-#include <NeuroGen/cuda/EligibilityTraceKernel.cuh>
-#include <NeuroGen/cuda/RewardModulationKernel.cuh>
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+// ============================================================================
+// EligibilityAndRewardKernels.cu - IMPLEMENTATIONS
+// ============================================================================
+
+#include <NeuroGen/cuda/EligibilityAndRewardKernels.cuh>
 #include <NeuroGen/LearningRuleConstants.h>
-#include <math.h>
+#include <NeuroGen/cuda/NeuronModelConstants.h>
+#include <cuda_runtime.h>
+#include <curand_kernel.h>
+
+// Define missing constants
+#ifndef REFRACTORY_PERIOD_MS
+#define REFRACTORY_PERIOD_MS 2.0f  // 2ms refractory period
+#endif
 
 /**
- * @file EligibilityAndRewardKernels.cu
- * @brief Implements the CUDA kernels for multi-timescale eligibility traces,
- * synaptic tagging, reward prediction error, and reward-modulated plasticity.
+ * Reset eligibility traces in synapses
  */
-
-// --- Eligibility Trace Kernels ---
-
-__global__ void eligibilityTraceUpdateKernel(GPUSynapse* synapses, const GPUNeuronState* neurons, float current_time, float dt, int num_synapses) {
+__global__ void eligibilityTraceResetKernel(GPUSynapse* synapses, 
+                                           int num_synapses, 
+                                           bool reset_all,
+                                           bool reset_positive_only, 
+                                           bool reset_negative_only) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_synapses) return;
-
-    GPUSynapse& synapse = synapses[idx];
-    if (synapse.active == 0 || !synapse.is_plastic) return;
-
-    // 1. Decay all traces using time constants
-    synapse.fast_trace *= expf(-dt / FAST_TRACE_TAU);
-    synapse.medium_trace *= expf(-dt / MEDIUM_TRACE_TAU);
-    synapse.slow_trace *= expf(-dt / SLOW_TRACE_TAU);
-    synapse.tag_strength *= expf(-dt / TAG_TAU);
-
-    // 2. Cascade from fast to medium trace (consolidation)
-    float fast_to_medium_transfer = synapse.fast_trace * FAST_TO_MEDIUM_RATE * dt;
-    synapse.medium_trace += fast_to_medium_transfer;
-
-    // 3. Cascade from medium to slow trace (long-term consolidation)
-    float medium_to_slow_transfer = synapse.medium_trace * MEDIUM_TO_SLOW_RATE * dt;
-    synapse.slow_trace += medium_to_slow_transfer;
     
-    // 4. Synaptic Tagging: Mark synapses for late-phase plasticity if medium trace is high
-    if (fabsf(synapse.medium_trace) > TAG_THRESHOLD) {
-        synapse.tag_strength += synapse.medium_trace * TAG_CREATION_RATE * dt;
+    GPUSynapse& synapse = synapses[idx];
+    
+    if (reset_all) {
+        synapse.eligibility_trace = 0.0f;
+    } else if (reset_positive_only && synapse.eligibility_trace > 0.0f) {
+        synapse.eligibility_trace = 0.0f;
+    } else if (reset_negative_only && synapse.eligibility_trace < 0.0f) {
+        synapse.eligibility_trace = 0.0f;
     }
-
-    // 5. Clamp all traces to prevent runaway values
-    synapse.fast_trace = fmaxf(-MAX_FAST_TRACE, fminf(MAX_FAST_TRACE, synapse.fast_trace));
-    synapse.medium_trace = fmaxf(-MAX_MEDIUM_TRACE, fminf(MAX_MEDIUM_TRACE, synapse.medium_trace));
-    synapse.slow_trace = fmaxf(-MAX_SLOW_TRACE, fminf(MAX_SLOW_TRACE, synapse.slow_trace));
-    synapse.tag_strength = fmaxf(-MAX_TAG_STRENGTH, fminf(MAX_TAG_STRENGTH, synapse.tag_strength));
 }
 
-__global__ void latePhaseePlasticityKernel(GPUSynapse* synapses, const GPUNeuronState* neurons, float protein_synthesis_signal, float current_time, float dt, int num_synapses) {
+/**
+ * Monitor and collect eligibility trace statistics
+ */
+__global__ void traceMonitoringKernel(const GPUSynapse* synapses, 
+                                     int num_synapses, 
+                                     float* trace_stats) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_synapses) return;
-
-    GPUSynapse& synapse = synapses[idx];
-    if (synapse.active == 0 || !synapse.is_plastic) return;
-
-    // Late-phase plasticity requires a strong tag AND a global protein synthesis signal
-    if (fabsf(synapse.tag_strength) < PROTEIN_SYNTHESIS_THRESHOLD || protein_synthesis_signal < PROTEIN_SYNTHESIS_THRESHOLD) {
-        return;
+    
+    const GPUSynapse& synapse = synapses[idx];
+    
+    // Store trace value for this synapse (could be used for analysis)
+    if (trace_stats) {
+        trace_stats[idx] = synapse.eligibility_trace;
     }
-
-    // The weight change is proportional to the tag strength and the signal
-    float late_phase_dw = synapse.tag_strength * protein_synthesis_signal * LATE_PHASE_FACTOR * dt;
-    synapse.weight += late_phase_dw;
-
-    // Consume the tag to prevent repeated, uncontrolled potentiation/depression
-    synapse.tag_strength *= 0.3f; 
-
-    // Clamp weight to its bounds
-    synapse.weight = fmaxf(MIN_WEIGHT, fminf(MAX_WEIGHT, synapse.weight));
+    
+    // Could add more sophisticated monitoring here
+    // e.g., compute running averages, detect anomalies, etc.
 }
 
-// --- Reward Modulation Kernels ---
-
-__global__ void rewardPredictionErrorKernel(const GPUNeuronState* neurons, float actual_reward, float* predicted_reward, float* prediction_error, float* dopamine_level, float current_time, float dt, int num_neurons) {
-    // This kernel is intended to be run with a single thread.
-    if (blockIdx.x * blockDim.x + threadIdx.x != 0) return;
-
-    // --- Compute Reward Prediction (V(s)) ---
-    // (Simplified: In a full implementation, this would come from specific reward-predicting neurons)
-    // For now, we use a placeholder logic.
-    *predicted_reward = *dopamine_level; // A simple assumption that last dopamine level is the prediction.
-
-    // --- Compute Prediction Error (δ) ---
-    // δ = r - V(s)
-    *prediction_error = (actual_reward - *predicted_reward) * PREDICTION_ERROR_SCALE;
-
-    // --- Update Dopamine Level ---
-    // The global dopamine level decays and is phasically updated by the prediction error.
-    *dopamine_level *= expf(-dt / DOPAMINE_TAU);
-    *dopamine_level += *prediction_error;
-}
-
-__global__ void rewardModulationKernel(GPUSynapse* synapses, const GPUNeuronState* neurons, float reward_signal, float dopamine_level, float prediction_error, float current_time, float dt, int num_synapses) {
+/**
+ * Adapt dopamine sensitivity based on neuron activity
+ */
+__global__ void dopamineSensitivityAdaptationKernel(GPUSynapse* synapses,
+                                                   const GPUNeuronState* neurons,
+                                                   float adaptation_rate,
+                                                   float target_activity,
+                                                   float current_dopamine,
+                                                   int num_synapses) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_synapses) return;
-
+    
     GPUSynapse& synapse = synapses[idx];
-    if (synapse.active == 0 || !synapse.is_plastic) return;
-
-    // The effective reward signal is the global dopamine level
-    float effective_reward = dopamine_level;
-
-    // Modulate each trace by its sensitivity to dopamine
-    float modulated_fast = synapse.fast_trace * effective_reward * FAST_TRACE_DOPAMINE_SENS;
-    float modulated_medium = synapse.medium_trace * effective_reward * MEDIUM_TRACE_DOPAMINE_SENS;
-    float modulated_slow = synapse.slow_trace * effective_reward * SLOW_TRACE_DOPAMINE_SENS;
     
-    // The total weight change is the sum of the modulated traces
-    float total_dw = (modulated_fast + modulated_medium + modulated_slow) * synapse.plasticity_rate * dt;
-    
-    synapse.weight += total_dw;
-    
-    // Clamp the weight to its min/max bounds
-    synapse.weight = fmaxf(synapse.min_weight, fminf(synapse.max_weight, synapse.weight));
+    // Get post-synaptic neuron activity
+    int post_neuron_idx = synapse.post_neuron_idx;
+    if (post_neuron_idx >= 0) {
+        const GPUNeuronState& post_neuron = neurons[post_neuron_idx];
+        
+        // Calculate activity metric (simple spike-based for now)
+        float activity = post_neuron.spiked ? 1.0f : 0.0f;
+        
+        // Adapt dopamine sensitivity based on activity difference
+        float activity_error = activity - target_activity;
+        
+        // Adjust dopamine sensitivity (stored in a synapse field)
+        // This is a simplified model - could be more sophisticated
+        synapse.dopamine_sensitivity += adaptation_rate * activity_error * current_dopamine;
+        
+        // Clamp sensitivity to reasonable bounds
+        synapse.dopamine_sensitivity = fmaxf(0.1f, fminf(2.0f, synapse.dopamine_sensitivity));
+    }
 }
+
+/**
+ * Update reward traces for reinforcement learning
+ */
+__global__ void rewardTraceUpdateKernel(float* reward_traces,
+                                       float decay_factor,
+                                       float current_reward) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    // Update reward trace with decay and current reward
+    reward_traces[idx] = reward_traces[idx] * decay_factor + current_reward;
+}
+
+// ============================================================================
+// WRAPPER FUNCTION IMPLEMENTATIONS
+// ============================================================================
+
+void launchEligibilityTraceReset(GPUSynapse* d_synapses, 
+                                int num_synapses,
+                                bool reset_all,
+                                bool reset_positive_only,
+                                bool reset_negative_only) {
+    dim3 block(256);
+    dim3 grid((num_synapses + block.x - 1) / block.x);
+    
+    eligibilityTraceResetKernel<<<grid, block>>>(d_synapses, num_synapses,
+                                                 reset_all, reset_positive_only, 
+                                                 reset_negative_only);
+    cudaDeviceSynchronize();
+}
+
+void launchTraceMonitoring(const GPUSynapse* d_synapses,
+                          int num_synapses,
+                          float* d_trace_stats) {
+    dim3 block(256);
+    dim3 grid((num_synapses + block.x - 1) / block.x);
+    
+    traceMonitoringKernel<<<grid, block>>>(d_synapses, num_synapses, d_trace_stats);
+    cudaDeviceSynchronize();
+}
+
+void launchDopamineSensitivityAdaptation(GPUSynapse* d_synapses,
+                                        const GPUNeuronState* d_neurons,
+                                        int num_synapses,
+                                        float adaptation_rate,
+                                        float target_activity,
+                                        float current_dopamine) {
+    dim3 block(256);
+    dim3 grid((num_synapses + block.x - 1) / block.x);
+    
+    dopamineSensitivityAdaptationKernel<<<grid, block>>>(d_synapses, d_neurons,
+                                                         adaptation_rate, target_activity,
+                                                         current_dopamine, num_synapses);
+    cudaDeviceSynchronize();
+}
+
+void launchRewardTraceUpdate(float* d_reward_traces,
+                            int num_traces,
+                            float decay_factor,
+                            float current_reward) {
+    dim3 block(256);
+    dim3 grid((num_traces + block.x - 1) / block.x);
+    
+    rewardTraceUpdateKernel<<<grid, block>>>(d_reward_traces, decay_factor, current_reward);
+    cudaDeviceSynchronize();
+}
+
+// ============================================================================
+// NeuronSpikingKernels.cu - IMPLEMENTATIONS
+// ============================================================================
+
+// ============================================================================
+// WRAPPER FUNCTION IMPLEMENTATIONS FOR ELIGIBILITY AND REWARD KERNELS ONLY
+// ============================================================================

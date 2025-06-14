@@ -1,5 +1,5 @@
 #include <NeuroGen/cuda/SynapseInputKernel.cuh>
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <NeuroGen/GPUNeuralStructures.h>
 #include <NeuroGen/cuda/NeuronModelConstants.h> // For receptor type definitions
 #include <cuda_runtime.h>
 

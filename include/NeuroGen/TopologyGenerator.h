@@ -7,7 +7,7 @@
 #include <functional>
 #include <string>
 #include <map>
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <NeuroGen/GPUNeuralStructures.h>
 #include <NeuroGen/NetworkConfig.h>
 
 // Forward declaration

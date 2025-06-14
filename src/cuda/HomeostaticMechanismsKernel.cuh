@@ -2,7 +2,7 @@
 #define HOMEOSTATIC_MECHANISMS_KERNEL_CUH
 
 #include <NeuroGen/LearningRuleConstants.h>
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <NeuroGen/GPUNeuralStructures.h>
 #include <cuda_runtime.h>
 #include <math.h>
 

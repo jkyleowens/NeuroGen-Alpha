@@ -44,6 +44,9 @@ namespace NetworkPresets {
         // Spike dynamics
         config.spike_threshold = 25.0;         // Lower threshold for responsiveness
         
+        // Finalize configuration to compute derived values
+        config.finalizeConfig();
+        
         return config;
     }
 

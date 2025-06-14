@@ -1,5 +1,5 @@
 #include <NeuroGen/cuda/HomeostaticMechanismsKernel.cuh>
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+
 #include <NeuroGen/LearningRuleConstants.h>
 #include <NeuroGen/cuda/NeuronModelConstants.h>
 #include <math.h>

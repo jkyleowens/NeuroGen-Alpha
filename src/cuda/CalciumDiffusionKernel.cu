@@ -1,6 +1,6 @@
 #include <NeuroGen/IonChannelModels.h>
 #include <NeuroGen/IonChannelConstants.h>
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <NeuroGen/GPUNeuralStructures.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <cstdio>

@@ -35,7 +35,7 @@ struct NetworkConfig {
     double neurogenesis_rate = 0.001;        // neurons/ms base rate
     double activity_threshold_low = 0.1;     // For underactivation
     double activity_threshold_high = 10.0;   // For hyperactivation
-    size_t max_neurons = 1000;
+    size_t max_neurons = 4096;
     
     // Pruning parameters
     bool enable_pruning = true;

@@ -1,83 +1,163 @@
-# =============================================================================
-# Makefile for NeuroGen-Alpha Project (v5 - Corrected Clean Rule)
 #
-# This Makefile handles the compilation of both C++ and CUDA source files.
-# It now dynamically locates the CUDA toolkit and properly cleans all generated files.
+# Makefile for the NeuroGen-Alpha Project
 #
-# =============================================================================
+# This Makefile handles the compilation of both C++ and CUDA source files,
+# linking them into a single executable, and provides run/clean commands.
+#
 
-# --- Compiler and Tool Definitions ---
-CXX := clang++
-NVCC := /opt/cuda/bin/nvcc
-EXEC := neurogen_trader
+# ----------------- #
+#  Configuration    #
+# ----------------- #
 
-# --- Directories and Paths ---
-SRC_DIR := src
-OBJ_DIR := obj
-INCLUDE_DIR := include
-CUDA_SRC_DIR := $(SRC_DIR)/cuda
+# Compilers and Linker
+# We use nvcc for the final linking stage to simplify inclusion of CUDA libraries.
+CXX := g++
+NVCC := nvcc
+LINKER := $(NVCC)
 
-# Define the CUDA installation path. The ?= allows overriding from the command line.
-CUDA_HOME ?= /opt/cuda
+# Directories
+# Using dedicated build directories keeps the source tree clean.
+SRCDIR := src
+CUDA_SRCDIR := $(SRCDIR)/cuda
+INCLUDEDIR := include
+OBJDIR := obj
+BINDIR := bin
 
-# --- Compiler Flags ---
-# Adjust -arch=sm_XX to match your GPU's compute capability.
-# sm_75 (Turing), sm_86 (Ampere), sm_90 (Ada Lovelace) are common.
-NVCCFLAGS := -O3 -std=c++17 -arch=sm_75 -ccbin=clang++ --expt-relaxed-constexpr -Xcompiler -Wall,-Wno-unused-function,-Wno-unknown-pragmas
-CXXFLAGS := -O3 -std=c++17 -Wall -g
+# Executable Name
+EXEC := $(BINDIR)/NeuroGen-Alpha
 
-# --- Linker Flags and Libraries ---
-LDFLAGS := -L$(CUDA_HOME)/lib64
-LIBS := -lcudart -lrt
+# Find all C++ and CUDA source files automatically
+SRC_CPP := $(wildcard $(SRCDIR)/*.cpp)
+SRC_CU := $(wildcard $(CUDA_SRCDIR)/*.cu)
 
-# --- Include Paths ---
-# Add the CUDA toolkit's include directory to the standard include path.
-INCLUDES := -I./$(INCLUDE_DIR) -I$(CUDA_HOME)/include
-
-# --- Source & Object File Definitions ---
-SRCS_CPP := $(wildcard $(SRC_DIR)/*.cpp)
-SRCS_CU := $(wildcard $(CUDA_SRC_DIR)/*.cu)
-OBJS_CPP := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS_CPP))
-OBJS_CU := $(patsubst $(CUDA_SRC_DIR)/%.cu, $(OBJ_DIR)/%.o, $(SRCS_CU))
+# Generate corresponding object file paths in the OBJDIR
+OBJS_CPP := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC_CPP))
+OBJS_CU := $(patsubst $(CUDA_SRCDIR)/%.cu,$(OBJDIR)/%.o,$(SRC_CU))
 OBJS := $(OBJS_CPP) $(OBJS_CU)
 
-# --- Phony Targets (commands that don't produce a file with the same name) ---
-.PHONY: all clean install_headers
+# --- Library Paths ---
+# Adjust these paths if CUDA or Poco are installed in non-standard locations.
+CUDA_PATH ?= /usr/local/cuda
+POCO_PATH ?= /usr/local/poco
 
-# --- Main Build Target ---
-all: install_headers $(EXEC)
+# --- Compiler and Linker Flags ---
 
-# --- Linking Rule ---
-$(EXEC): $(OBJS)
-	@echo "==> Linking executable: $@"
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS) $(LIBS)
-	@echo "==> Build complete. Executable created: $(EXEC)"
+# Include paths for headers (-I)
+CPPFLAGS := -I$(INCLUDEDIR) -I$(CUDA_PATH)/include
 
-# --- CUDA Compilation Rule ---
-$(OBJ_DIR)/%.o: $(CUDA_SRC_DIR)/%.cu
-	@mkdir -p $(@D)
-	@echo "==> Compiling CUDA: $<"
-	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -c $< -o $@
+# C++ specific compiler flags
+# Using C++17 standard as requested
+CXXFLAGS := -std=c++17 -Wall -Wextra -O2 -g
 
-# --- C++ Compilation Rule ---
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(@D)
-	@echo "==> Compiling C++: $<"
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+# NVCC specific compiler flags
+# Using C++17 standard as requested
+# -arch=native compiles for the architecture of the GPU on the build machine.
+NVCCFLAGS := -std=c++17 -arch=native -O2 -g --compiler-options "-Wall -Wextra"
 
-# --- Header Installation Rule ---
-install_headers:
-	@echo "==> Installing headers..."
-	@mkdir -p $(INCLUDE_DIR)/NeuroGen/cuda
-	@find $(SRC_DIR) -maxdepth 1 -name "*.h" -exec cp {} $(INCLUDE_DIR)/NeuroGen/ \;
-	@find $(CUDA_SRC_DIR) -type f \( -name "*.h" -o -name "*.cuh" \) -exec cp {} $(INCLUDE_DIR)/NeuroGen/cuda/ \;
-	@echo "==> Headers installed in $(INCLUDE_DIR)/NeuroGen"
+# Library paths for linker (-L)
+LDFLAGS := -L$(CUDA_PATH)/lib64
 
-# --- Cleanup Rule (FIXED) ---
-# This rule now removes the executable, all object files, and the generated include directory.
+# Libraries to link against (-l)
+# Note: Linking CUDA runtime, CUDA random number generator, libcurl for HTTP requests, and jsoncpp for JSON parsing
+LDLIBS := -lcudart -lcurand -lstdc++fs -lcurl -ljsoncpp
+
+
+# ----------------- #
+#      Targets      #
+# ----------------- #
+
+# Phony targets do not represent actual files.
+.PHONY: all run clean setup-headers
+
+# The default target, 'all', is the first target in the file.
+all: setup-headers $(EXEC)
+
+# Setup header files in the include directory
+setup-headers:
+	@echo "Setting up header files..."
+	@mkdir -p $(INCLUDEDIR)/NeuroGen/cuda
+	@# Copy ALL header files from src root directory
+	@if [ -f "src/AdvancedReinforcementLearning.h" ]; then cp src/AdvancedReinforcementLearning.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/DataStructures.h" ]; then cp src/DataStructures.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/DynamicNeurogenesisFramework.h" ]; then cp src/DynamicNeurogenesisFramework.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/DynamicSynaptogenesisFramework.h" ]; then cp src/DynamicSynaptogenesisFramework.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/EnhancedLearningSystem.h" ]; then cp src/EnhancedLearningSystem.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/EnhancedSTDPFramework.h" ]; then cp src/EnhancedSTDPFramework.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/GPUCorticalColumnFwd.h" ]; then cp src/GPUCorticalColumnFwd.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/GPUStructuresFwd.h" ]; then cp src/GPUStructuresFwd.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/HomeostaticRegulationSystem.h" ]; then cp src/HomeostaticRegulationSystem.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/IntegratedSimulationLoop.h" ]; then cp src/IntegratedSimulationLoop.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/IonChannelConstants.h" ]; then cp src/IonChannelConstants.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/IonChannelModels.h" ]; then cp src/IonChannelModels.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/IonChannelTesting.h" ]; then cp src/IonChannelTesting.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/LearningRuleConstants.h" ]; then cp src/LearningRuleConstants.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/NetworkConfig.h" ]; then cp src/NetworkConfig.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/Network.h" ]; then cp src/Network.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/NetworkIntegration.h" ]; then cp src/NetworkIntegration.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/NetworkPresets.h" ]; then cp src/NetworkPresets.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/NetworkUpdateStub.h" ]; then cp src/NetworkUpdateStub.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/NeuralPruningFramework.h" ]; then cp src/NeuralPruningFramework.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/PerformanceOptimization.h" ]; then cp src/PerformanceOptimization.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/Phase3IntegrationFramework.h" ]; then cp src/Phase3IntegrationFramework.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/TopologyGenerator.h" ]; then cp src/TopologyGenerator.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/TradingAgent.h" ]; then cp src/TradingAgent.h $(INCLUDEDIR)/NeuroGen/; fi
+	@# Copy ALL CUDA header files
+	@if [ -f "src/cuda/CorticalColumn.h" ]; then cp src/cuda/CorticalColumn.h $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/CudaCompatibility.h" ]; then cp src/cuda/CudaCompatibility.h $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/CudaUtils.h" ]; then cp src/cuda/CudaUtils.h $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/EligibilityAndRewardKernels.cuh" ]; then cp src/cuda/EligibilityAndRewardKernels.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/EligibilityTraceKernel.cuh" ]; then cp src/cuda/EligibilityTraceKernel.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/EnhancedSTDPKernel.cuh" ]; then cp src/cuda/EnhancedSTDPKernel.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/GPUNeuralStructures.h" ]; then cp src/cuda/GPUNeuralStructures.h $(INCLUDEDIR)/NeuroGen/; fi
+	@if [ -f "src/cuda/GridBlockUtils.cuh" ]; then cp src/cuda/GridBlockUtils.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/HebbianLearningKernel.cuh" ]; then cp src/cuda/HebbianLearningKernel.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/HomeostaticMechanismsKernel.cuh" ]; then cp src/cuda/HomeostaticMechanismsKernel.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/KernelLaunchWrappers.cuh" ]; then cp src/cuda/KernelLaunchWrappers.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/NetworkCUDA.cuh" ]; then cp src/cuda/NetworkCUDA.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/NetworkCUDA_Interface.h" ]; then cp src/cuda/NetworkCUDA_Interface.h $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/NeuronInitialization.cuh" ]; then cp src/cuda/NeuronInitialization.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/NeuronModelConstants.h" ]; then cp src/cuda/NeuronModelConstants.h $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/NeuronSpikingKernels.cuh" ]; then cp src/cuda/NeuronSpikingKernels.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/NeuronUpdateKernel.cuh" ]; then cp src/cuda/NeuronUpdateKernel.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/RandomStateInit.cuh" ]; then cp src/cuda/RandomStateInit.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/RewardModulationKernel.cuh" ]; then cp src/cuda/RewardModulationKernel.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/StructuralPlasticityKernels.cuh" ]; then cp src/cuda/StructuralPlasticityKernels.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@if [ -f "src/cuda/SynapseInputKernel.cuh" ]; then cp src/cuda/SynapseInputKernel.cuh $(INCLUDEDIR)/NeuroGen/cuda/; fi
+	@echo "All header files copied to include directory"
+
+# Rule to link the final executable.
+# Depends on all object files and the existence of the bin directory.
+$(EXEC): $(OBJS) | $(BINDIR)
+	@echo "Linking executable..."
+	$(LINKER) $(OBJS) -o $@ $(LDFLAGS) $(LDLIBS)
+	@echo "Build complete. Executable is at: $(EXEC)"
+
+# Rule to compile a C++ source file into an object file.
+# Depends on the source file, headers being set up, and the existence of the obj directory.
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR) setup-headers
+	@echo "Compiling C++: $<"
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+# Rule to compile a CUDA source file into an object file.
+# Depends on the source file, headers being set up, and the existence of the obj directory.
+$(OBJDIR)/%.o: $(CUDA_SRCDIR)/%.cu | $(OBJDIR) setup-headers
+	@echo "Compiling CUDA: $<"
+	$(NVCC) $(CPPFLAGS) $(NVCCFLAGS) -c $< -o $@
+
+# Create the binary and object directories if they don't exist.
+$(BINDIR) $(OBJDIR):
+	mkdir -p $@
+
+# Target to run the compiled application.
+# Depends on 'all' to ensure the program is built first.
+run: all
+	@echo "--- Running NeuroGen-Alpha ---"
+	./$(EXEC)
+	@echo "---      Run complete      ---"
+
+# Target to clean up all build artifacts.
 clean:
-	@echo "==> Cleaning up build files..."
-	rm -f $(EXEC)
-	rm -rf $(OBJ_DIR)
-	rm -rf $(INCLUDE_DIR)
-	@echo "==> Cleanup complete."
+	@echo "Cleaning up build artifacts..."
+	rm -rf $(OBJDIR) $(BINDIR)
+	rm -rf $(INCLUDEDIR)/NeuroGen
+	@echo "Cleanup complete."

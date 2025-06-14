@@ -1,5 +1,5 @@
 #include <NeuroGen/cuda/NeuronUpdateKernel.cuh>
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <NeuroGen/GPUNeuralStructures.h>
 #include <NeuroGen/IonChannelModels.h>
 #include <NeuroGen/IonChannelConstants.h> // For reversal potentials and other constants
 #include <stdio.h> // For debugging if needed

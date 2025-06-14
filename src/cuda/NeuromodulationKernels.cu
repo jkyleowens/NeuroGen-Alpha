@@ -1,4 +1,4 @@
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <NeuroGen/GPUNeuralStructures.h>
 #include <NeuroGen/LearningRuleConstants.h>
 
 /**

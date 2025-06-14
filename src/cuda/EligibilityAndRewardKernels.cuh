@@ -1,70 +1,130 @@
+// ============================================================================
+// EligibilityAndRewardKernels.cuh - DECLARATIONS ONLY
+// ============================================================================
+
 #ifndef ELIGIBILITY_AND_REWARD_KERNELS_CUH
 #define ELIGIBILITY_AND_REWARD_KERNELS_CUH
 
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <cuda_runtime.h>
+#include <NeuroGen/GPUNeuralStructures.h>
+
+// KERNEL DECLARATIONS (NO DEFINITIONS IN HEADER)
 
 /**
- * @brief Resets the eligibility traces for synapses.
- *
- * This kernel can reset positive, negative, or all eligibility traces, which is
- * crucial for starting new learning episodes or managing trace decay.
+ * Reset eligibility traces in synapses
  */
-__global__ void eligibilityTraceResetKernel(GPUSynapse* synapses, int num_synapses, bool reset_positive, bool reset_negative, bool reset_all);
+__global__ void eligibilityTraceResetKernel(GPUSynapse* synapses, 
+                                           int num_synapses, 
+                                           bool reset_all,
+                                           bool reset_positive_only, 
+                                           bool reset_negative_only);
 
 /**
- * @brief Monitors the state of eligibility traces for debugging and analysis.
- *
- * This kernel extracts the values of eligibility traces and stores them in a
- * buffer for analysis on the host.
+ * Monitor and collect eligibility trace statistics
  */
-__global__ void traceMonitoringKernel(const GPUSynapse* synapses, int num_synapses, float* trace_buffer);
+__global__ void traceMonitoringKernel(const GPUSynapse* synapses, 
+                                     int num_synapses, 
+                                     float* trace_stats);
 
 /**
- * @brief Adapts the sensitivity of synapses to dopamine based on neural activity.
- *
- * This mechanism allows the network to dynamically adjust how it responds to
- * reward signals, a key feature of advanced reinforcement learning.
+ * Adapt dopamine sensitivity based on neuron activity
  */
-__global__ void dopamineSensitivityAdaptationKernel(GPUSynapse* synapses, const GPUNeuronState* neurons, float base_sensitivity, float max_sensitivity, float adaptation_rate, int num_synapses);
+__global__ void dopamineSensitivityAdaptationKernel(GPUSynapse* synapses,
+                                                   const GPUNeuronState* neurons,
+                                                   float adaptation_rate,
+                                                   float target_activity,
+                                                   float current_dopamine,
+                                                   int num_synapses);
 
 /**
- * @brief Updates the global reward trace based on external reward signals.
- *
- * The reward trace integrates rewards over time, providing a smoother signal
- * for learning and credit assignment.
+ * Update reward traces for reinforcement learning
  */
-__global__ void rewardTraceUpdateKernel(float* reward_trace, float current_reward, float decay_rate);
+__global__ void rewardTraceUpdateKernel(float* reward_traces,
+                                       float decay_factor,
+                                       float current_reward);
 
-/**
- * @brief Updates the eligibility traces based on pre- and post-synaptic activity.
- *
- * This kernel implements the core mechanism of trace-based learning rules like
- * STDP with eligibility traces.
- */
-__global__ void eligibilityTraceUpdateKernel(GPUSynapse* synapses, const GPUNeuronState* neurons, float tau_e, float a_pre, int num_synapses);
+// WRAPPER FUNCTION DECLARATIONS
 
-/**
- * @brief Implements the late-phase (long-term) plasticity consolidation.
- *
- * This kernel strengthens synapses that have high eligibility traces, leading
- * to long-term memory formation.
- */
-__global__ void latePhaseePlasticityKernel(GPUSynapse* synapses, const GPUNeuronState* neurons, float learning_rate, float eligibility_threshold, float consolidation_factor, int num_synapses);
+void launchEligibilityTraceReset(GPUSynapse* d_synapses, 
+                                int num_synapses,
+                                bool reset_all = true,
+                                bool reset_positive_only = false,
+                                bool reset_negative_only = false);
 
-/**
- * @brief Calculates the reward prediction error (TD error).
- *
- * This is a fundamental computation in reinforcement learning, where the network
- * learns to predict future rewards.
- */
-__global__ void rewardPredictionErrorKernel(const GPUNeuronState* neurons, float actual_reward, float* value_estimate, float* last_value_estimate, float* td_error, float discount_factor, float learning_rate, int num_neurons);
+void launchTraceMonitoring(const GPUSynapse* d_synapses,
+                          int num_synapses,
+                          float* d_trace_stats);
 
-/**
- * @brief Modulates synaptic weights based on a reward signal and eligibility traces.
- *
- * This kernel applies the reward signal to eligible synapses, driving the
- * learning process in the direction of rewarding outcomes.
- */
-__global__ void rewardModulationKernel(GPUSynapse* synapses, const GPUNeuronState* neurons, float learning_rate, float reward_signal, float eligibility_trace_decay, float baseline_reward, float modulation_factor, int num_synapses);
+void launchDopamineSensitivityAdaptation(GPUSynapse* d_synapses,
+                                        const GPUNeuronState* d_neurons,
+                                        int num_synapses,
+                                        float adaptation_rate = 0.001f,
+                                        float target_activity = 0.1f,
+                                        float current_dopamine = 1.0f);
+
+void launchRewardTraceUpdate(float* d_reward_traces,
+                            int num_traces,
+                            float decay_factor = 0.95f,
+                            float current_reward = 0.0f);
 
 #endif // ELIGIBILITY_AND_REWARD_KERNELS_CUH
+
+// ============================================================================
+// NeuronSpikingKernels.cuh - DECLARATIONS ONLY  
+// ============================================================================
+
+#ifndef NEURON_SPIKING_KERNELS_CUH
+#define NEURON_SPIKING_KERNELS_CUH
+
+
+// KERNEL DECLARATIONS (NO DEFINITIONS IN HEADER)
+
+/**
+ * Reset spike flags for all neurons
+ */
+__global__ void resetSpikeFlags(GPUNeuronState* neurons, int num_neurons);
+
+/**
+ * Process neuron spiking and update spike times
+ */
+__global__ void processNeuronSpikes(GPUNeuronState* neurons, 
+                                   int* spike_counts,
+                                   float current_time,
+                                   int num_neurons);
+
+/**
+ * Handle dendritic spike propagation
+ */
+__global__ void dendriticSpikeKernel(GPUNeuronState* neurons, 
+                                    float current_time, 
+                                    int num_neurons);
+
+/**
+ * Update neuron voltages with leak currents
+ */
+__global__ void updateNeuronVoltages(GPUNeuronState* neurons,
+                                    float* I_leak,
+                                    float* Cm,
+                                    float dt,
+                                    int num_neurons);
+
+// WRAPPER FUNCTION DECLARATIONS
+
+void launchResetSpikeFlags(GPUNeuronState* d_neurons, int num_neurons);
+
+void launchProcessNeuronSpikes(GPUNeuronState* d_neurons,
+                              int* d_spike_counts,
+                              float current_time,
+                              int num_neurons);
+
+void launchDendriticSpikeKernel(GPUNeuronState* d_neurons, 
+                               float current_time,
+                               int num_neurons);
+
+void launchUpdateNeuronVoltages(GPUNeuronState* d_neurons,
+                               float* d_I_leak,
+                               float* d_Cm,
+                               float dt,
+                               int num_neurons);
+
+#endif // NEURON_SPIKING_KERNELS_CUH

@@ -1,7 +1,7 @@
 #ifndef STRUCTURAL_PLASTICITY_KERNELS_CUH
 #define STRUCTURAL_PLASTICITY_KERNELS_CUH
 
-#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <NeuroGen/GPUNeuralStructures.h>
 #include <curand_kernel.h>
 
 /**
