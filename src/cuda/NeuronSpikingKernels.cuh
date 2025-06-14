@@ -13,6 +13,12 @@ struct GPUSpikeEvent;
  * @param spike_count Pointer to counter for number of spikes
  * @param num_neurons Total number of neurons
  */
+
+ /**
+ * @brief Resets the `spiked` flag for all neurons at the start of a simulation step.
+ */
+__global__ void resetSpikeFlags(GPUNeuronState* neurons, int num_neurons);
+
 __global__ void countSpikesKernel(const GPUNeuronState* neurons,
                                  int* spike_count, int num_neurons);
 

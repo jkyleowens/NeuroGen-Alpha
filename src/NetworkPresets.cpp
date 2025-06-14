@@ -227,4 +227,49 @@ namespace NetworkPresets {
         return config;
     }
 
+    NetworkConfig getSmallNetworkConfig() {
+        NetworkConfig config;
+        
+        // Small network topology for testing
+        config.input_size = 16;        // Small input
+        config.hidden_size = 32;       // Small hidden layer
+        config.output_size = 4;        // Limited output
+        
+        // Standard timing
+        config.dt = 0.001;             // Standard time step
+        config.simulation_time = 50.0f; // Short simulation for testing
+        
+        // Moderate learning parameters
+        config.reward_learning_rate = 0.01f;
+        config.A_plus = 0.01f;
+        config.A_minus = 0.012f;
+        config.tau_plus = 20.0f;
+        config.tau_minus = 20.0f;
+        
+        // Standard connectivity
+        config.input_hidden_prob = 0.8f;
+        config.hidden_hidden_prob = 0.1f;
+        config.hidden_output_prob = 0.9f;
+        
+        // Standard weights
+        config.min_weight = 0.001f;
+        config.max_weight = 2.0f;
+        config.weight_init_std = 0.5f;
+        
+        // Standard excitatory ratio
+        config.exc_ratio = 0.8f;
+        
+        // Standard homeostasis
+        config.homeostatic_strength = 0.001f;
+        
+        // Monitoring
+        config.enable_monitoring = true;
+        config.monitoring_interval = 100;
+        
+        // Standard threshold
+        config.spike_threshold = 30.0;
+        
+        return config;
+    }
+
 } // namespace NetworkPresets

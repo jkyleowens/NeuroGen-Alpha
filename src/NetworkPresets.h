@@ -54,6 +54,17 @@ namespace NetworkPresets {
     NetworkConfig minimal_test();
 
     /**
+     * @brief Small network configuration for testing
+     * Compact network suitable for testing and development
+     * - Input size: 16 (small input)
+     * - Hidden size: 32 (small hidden layer)
+     * - Output size: 4 (limited output)
+     * - Standard timing parameters for quick testing
+     * @return NetworkConfig with small parameters for testing
+     */
+    NetworkConfig getSmallNetworkConfig();
+
+    /**
      * @brief Balanced default configuration
      * General-purpose configuration suitable for most applications
      * - Input size: 32 (moderate input size)

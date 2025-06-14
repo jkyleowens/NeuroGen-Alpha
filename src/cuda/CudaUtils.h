@@ -1,9 +1,11 @@
 #ifndef CUDA_UTILS_H
 #define CUDA_UTILS_H
 
+// Always include real CUDA headers when building with nvcc
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <curand_kernel.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>

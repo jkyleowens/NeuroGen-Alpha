@@ -1,4 +1,3 @@
-#include <NeuroGen/cuda/NeuromodulationKernels.cuh>
 #include <NeuroGen/cuda/GPUNeuralStructures.h>
 #include <NeuroGen/LearningRuleConstants.h>
 

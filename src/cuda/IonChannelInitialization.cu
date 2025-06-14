@@ -1,10 +1,11 @@
 // IonChannelInitialization.cu
 #include <NeuroGen/IonChannelModels.h>
 #include <NeuroGen/IonChannelConstants.h>
-#include <NeuroGen/GPUNeuralStructures.h>
+#include <NeuroGen/cuda/GPUNeuralStructures.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <curand_kernel.h>
+#include <cstdio>
 
 /**
  * CUDA kernel to initialize ion channel states for all neurons

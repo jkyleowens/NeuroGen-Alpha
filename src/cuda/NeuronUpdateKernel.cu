@@ -3,6 +3,7 @@
 #include <NeuroGen/IonChannelModels.h>
 #include <NeuroGen/IonChannelConstants.h> // For reversal potentials and other constants
 #include <stdio.h> // For debugging if needed
+#include <cmath>
 
 /**
  * @file NeuronUpdateKernel.cu
@@ -24,6 +25,47 @@
  * numerical stability and accuracy.
  */
 
+ // --- Hodgkin-Huxley Gating Variable Kinetics ---
+// These __device__ functions provide the standard mathematical models for the ion channel
+// gating variables (m, h, n) based on the membrane voltage. They are called from
+// the computeAllDerivatives function.
+
+__device__ float alpha_m(float v) {
+    // Sodium channel activation rate
+    if (fabsf(v - (-40.0f)) < 1e-6) { // Avoid division by zero
+        return 1.0f;
+    }
+    return 0.1f * (v - (-40.0f)) / (1.0f - expf(-(v - (-40.0f)) / 10.0f));
+}
+
+__device__ float beta_m(float v) {
+    // Sodium channel activation rate
+    return 4.0f * expf(-(v - (-65.0f)) / 18.0f);
+}
+
+__device__ float alpha_h(float v) {
+    // Sodium channel inactivation rate
+    return 0.07f * expf(-(v - (-65.0f)) / 20.0f);
+}
+
+__device__ float beta_h(float v) {
+    // Sodium channel inactivation rate
+    return 1.0f / (1.0f + expf(-(v - (-35.0f)) / 10.0f));
+}
+
+__device__ float alpha_n(float v) {
+    // Potassium channel activation rate
+    if (fabsf(v - (-55.0f)) < 1e-6) { // Avoid division by zero
+        return 0.1f;
+    }
+    return 0.01f * (v - (-55.0f)) / (1.0f - expf(-(v - (-55.0f)) / 10.0f));
+}
+
+__device__ float beta_n(float v) {
+    // Potassium channel activation rate
+    return 0.125f * expf(-(v - (-65.0f)) / 80.0f);
+}
+
 // Forward declaration of the device-side derivative calculation function
 __device__ void computeAllDerivatives(
     int n_idx, int c_idx, const GPUNeuronState* neurons, float* states,
@@ -31,7 +73,7 @@ __device__ void computeAllDerivatives(
 );
 
 // Main RK4 neuron update kernel
-__global__ void enhancedRK4NeuronUpdateKernel(GPUNeuronState* neurons, float dt, float current_time, int N) {
+__global__ void rk4NeuronUpdateKernel(GPUNeuronState* neurons, float dt, float current_time, int N) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= N) return;
 

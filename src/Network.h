@@ -30,13 +30,11 @@
 #ifdef USE_CUDA
 #if USE_CUDA
 #include "NeuroGen/cuda/NetworkCUDA.cuh"
-
 #endif
 #endif
 
 #include <NeuroGen/Neuron.h>
 #include <NeuroGen/NetworkConfig.h>
-#include <NeuroGen/cuda/
 
 // Optional JSON support - disabled for now to avoid dependency issues
 // #define USE_JSON_CONFIG
@@ -49,7 +47,6 @@ class Neuron;
 class Compartment;
 class IonChannel;
 class SynapticReceptor;
-class NetworkCUDA;
 
 /**
  * @brief 3D position structure for spatial neuron organization
@@ -327,26 +324,6 @@ public:
         size_t active_neurons;
         size_t total_synapses;
         double mean_synaptic_strength;
-
-        // GPU-focused metrics
-        float total_spikes;
-        float avg_weight;
-        float reward_signal;
-        int update_count;
-
-        void reset() {
-            mean_firing_rate = 0.0;
-            network_synchrony = 0.0;
-            mean_connectivity = 0.0;
-            excitation_inhibition_ratio = 0.0;
-            active_neurons = 0;
-            total_synapses = 0;
-            mean_synaptic_strength = 0.0;
-            total_spikes = 0.0f;
-            avg_weight = 0.0f;
-            reward_signal = 0.0f;
-            update_count = 0;
-        }
     };
     
     NetworkStats calculateNetworkStats(double time_window = 1000.0) const;
@@ -576,11 +553,16 @@ private:
     void logStructuralChange(const std::string& type, const std::string& details) const;
 
     #ifdef USE_CUDA
-    // Performance tracking for optional CUDA path
+    // CUDA acceleration components
+    std::unique_ptr<NetworkCUDA> cuda_accelerator_;
+    bool use_cuda_;
+    bool cuda_data_uploaded_;
+
+    // Performance tracking
     std::chrono::high_resolution_clock::time_point last_cuda_sync_;
     double cuda_compute_time_;
     double cpu_compute_time_;
-    #endif
+#endif
 };
 
 /**

@@ -1,9 +1,11 @@
 #ifndef CUDA_COMPATIBILITY_H
 #define CUDA_COMPATIBILITY_H
 
+// Always include real CUDA headers when building with nvcc
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <curand_kernel.h>
+
 #include <cstdio>    // For fprintf, stderr
 #include <cstdlib>   // For exit
 #include <iostream>  // For std::cerr

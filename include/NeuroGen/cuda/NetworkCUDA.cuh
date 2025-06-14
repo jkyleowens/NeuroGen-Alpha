@@ -7,8 +7,17 @@
 #include <chrono>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-#include <NeuroGen/GPUNeuralStructures.h>
-#include <NeuroGen/Network.h> // Include Network.h for NetworkStats and NetworkConfig definitions
+#include <NeuroGen/cuda/CudaUtils.h>
+#include <NeuroGen/NetworkConfig.h>
+#include <NeuroGen/NetworkPresets.h>
+#include <NeuroGen/cuda/GPUNeuralStructures.h>
+#include <NeuroGen/cuda/NeuronUpdateKernel.cuh>
+#include <NeuroGen/cuda/NeuronSpikingKernels.cuh>
+#include <NeuroGen/cuda/SynapseInputKernel.cuh>
+#include <NeuroGen/cuda/EnhancedSTDPKernel.cuh>
+#include <NeuroGen/cuda/HomeostaticMechanismsKernel.cuh>
+#include <NeuroGen/cuda/KernelLaunchWrappers.cuh>
+#include <NeuroGen/cuda/RandomStateInit.cuh>
 
 struct GPUNeuronState;
 struct GPUSynapse;
@@ -26,11 +35,13 @@ extern "C" {
     void setNetworkConfig(const NetworkConfig& config);
     NetworkConfig getNetworkConfig();
     void printNetworkStats();
+    std::vector<float> getNeuromodulatorLevels();
     
     // Advanced features
     void saveNetworkState(const std::string& filename);
     void loadNetworkState(const std::string& filename);
     void resetNetwork();
+
 }
 
 // Internal helper functions (not exposed to main.cpp)
@@ -120,8 +131,8 @@ namespace NetworkConstants {
     constexpr float DEFAULT_DT = 0.01f;                    // 10 μs time step
     constexpr float DEFAULT_SPIKE_THRESHOLD = -40.0f;     // mV
     constexpr float DEFAULT_RESTING_POTENTIAL = -65.0f;   // mV
-    constexpr float MIN_WEIGHT = -2.0f;                    // Minimum synaptic weight
-    constexpr float MAX_WEIGHT = 2.0f;                     // Maximum synaptic weight
+    constexpr float MIN_WEIGHT_CONST = -2.0f;                    // Minimum synaptic weight
+    constexpr float MAX_WEIGHT_CONST = 2.0f;                     // Maximum synaptic weight
     constexpr float MIN_DELAY = 0.1f;                      // Minimum synaptic delay (ms)
     constexpr float MAX_DELAY = 20.0f;                     // Maximum synaptic delay (ms)
     constexpr int MAX_SIMULATION_STEPS = 10000;           // Safety limit

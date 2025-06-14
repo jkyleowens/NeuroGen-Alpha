@@ -36,7 +36,7 @@ void launchNeuronUpdateKernel(GPUNeuronState* neurons, float dt, int N);
  * @param dt Time step
  * @param current_time Current simulation time
  */
-void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt, float current_time = 0.0f);
+void launchRK4NeuronUpdateKernel(GPUNeuronState* neurons, int N, float dt, float current_time);
 
 /**
  * Launch kernel for synapse input processing
@@ -63,5 +63,58 @@ void launchSpikeDetectionKernel(GPUNeuronState* neurons,
                                int* spike_count, 
                                int num_neurons, 
                                float current_time);
+
+/**
+ * Launch kernel for processing dendritic spikes
+ * @param neurons Array of neuron states
+ * @param N Number of neurons
+ * @param current_time Current simulation time
+ */
+void launchDendriticSpikeKernel(GPUNeuronState* neurons, int N, float current_time);
+
+/**
+ * @brief Launches the CUDA kernel to update the eligibility traces for all synapses.
+ *
+ * Eligibility traces are a fundamental component of reinforcement learning in SNNs,
+ * marking synapses that have recently contributed to a neuron's firing.
+ *
+ * @param blocks The grid dimensions for the kernel launch.
+ * @param threads The block dimensions for the kernel launch.
+ * @param d_synapses Pointer to the synapse data on the GPU.
+ * @param d_neurons Pointer to the neuron state data on the GPU.
+ * @param dt_ms The simulation time step in milliseconds.
+ * @param num_synapses The total number of synapses.
+ */
+void updateEligibilityTracesWrapper(dim3 blocks, dim3 threads, GPUSynapse* d_synapses, const GPUNeuronState* d_neurons, float dt_ms, int num_synapses);
+
+/**
+ * @brief Launches the CUDA kernel to apply a global reward signal to the synapses.
+ *
+ * This function modulates the weights of eligible synapses based on the reward signal,
+ * reinforcing or weakening connections to steer the network toward desired behaviors.
+ *
+ * @param blocks The grid dimensions for the kernel launch.
+ * @param threads The block dimensions for the kernel launch.
+ * @param d_synapses Pointer to the synapse data on the GPU.
+ * @param reward The global reward signal.
+ * @param num_synapses The total number of synapses.
+ */
+void applyRewardModulationWrapper(dim3 blocks, dim3 threads, GPUSynapse* d_synapses, float reward, int num_synapses);
+
+/**
+ * @brief Launches the CUDA kernel to apply Hebbian learning rules (STDP).
+ *
+ * This implements Spike-Timing-Dependent Plasticity, a biologically plausible
+ * learning rule where the precise timing of pre- and post-synaptic spikes
+ * determines the change in synaptic strength.
+ *
+ * @param blocks The grid dimensions for the kernel launch.
+ * @param threads The block dimensions for the kernel launch.
+ * @param d_synapses Pointer to the synapse data on the GPU.
+ * @param d_neurons Pointer to the neuron state data on the GPU.
+ * @param num_synapses The total number of synapses.
+ */
+void applyHebbianLearningWrapper(dim3 blocks, dim3 threads, GPUSynapse* d_synapses, const GPUNeuronState* d_neurons, int num_synapses);
+
 
 #endif // KERNEL_LAUNCH_WRAPPERS_CUH
