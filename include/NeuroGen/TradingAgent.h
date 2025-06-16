@@ -10,6 +10,7 @@
 #include <chrono>
 #include <fstream>
 #include <functional>
+#include <random>
 #include <NeuroGen/cuda/NetworkCUDA_Interface.h>
 
 // Forward declarations
@@ -120,7 +121,8 @@ public:
     float calculateRealizedPnL() const;
     float getTotalValue(float current_price) const;
     float getAvailableCapital() const;
-    
+    float getInitialCapital() const { return initial_capital_; } // Added getter
+
     // Position management
     float getCurrentPosition() const { return current_position_; }
     float getPositionValue(float current_price) const;
@@ -129,13 +131,17 @@ public:
     // Performance metrics
     float getSharpeRatio() const;
     float getMaxDrawdown() const;
-    float getTotalReturn() const;
+    float getTotalReturn(float current_price) const; // Modified signature
     int getTotalTrades() const { return total_trades_; }
     float getWinRate() const;
+    const std::vector<float>& getTradeReturns() const { return trade_returns_; } // Added getter
     
     // Portfolio state
     void printSummary(float current_price) const;
-    void logTrade(TradingAction action, float price, float size, float confidence);
+    // Modified signature to match definition
+    void logTrade(TradingAction original_action, float current_market_price, float shares_executed, float confidence, float pnl_from_this_trade, float entry_price_of_closed_portion, bool was_closing_trade);
+    void resetPortfolioState(); // Reset to initial state
+    bool validatePortfolioState(float current_price) const; // Validate portfolio sanity
     
 private:
     float initial_capital_;
@@ -211,9 +217,12 @@ public:
     TradingDecision makeDecision(const MarketData& data);
     void updateNeuralNetwork(const TradingDecision& decision, float reward);
     
-    // Performance evaluation
-    float calculateReward(const TradingDecision& decision, const MarketData& current_data);
-    void evaluatePerformance();
+    // Neural network persistence
+    void saveNeuralNetworkState() const;
+    bool saveNeuralNetworkState(const std::string& filename) const;
+    bool loadNeuralNetworkState();
+    bool loadNeuralNetworkState(const std::string& filename);
+    void resetRewardTracking(); // Reset reward calculation tracking
     
     // Configuration
     void setSymbol(const std::string& symbol) { symbol_ = symbol; }
@@ -225,6 +234,7 @@ public:
     void printStatus() const;
     void exportTradingLog(const std::string& filename) const;
     void exportPerformanceReport(const std::string& filename) const;
+    void evaluatePerformance();
     
     // Statistics
     struct TradingStatistics {
@@ -235,11 +245,14 @@ public:
         int total_trades;
         float avg_trade_duration_hours;
         float profit_factor;
+        float portfolio_value;
         std::vector<float> neural_confidence_history;
         std::vector<float> reward_history;
     };
     
     TradingStatistics getStatistics() const;
+    std::vector<MarketData> getMarketHistory() const;
+    void setMarketHistory(const std::vector<MarketData>& history);
 
 private:
     // Core components
@@ -269,6 +282,15 @@ private:
     // Logging
     std::ofstream trading_log_;
     std::ofstream performance_log_;
+
+    float epsilon_;
+    static constexpr float EPSILON_DECAY = 0.9995f;
+    
+    // Neural network persistence
+    bool autosave_enabled_;
+    int network_save_interval_;
+    int decisions_since_save_;
+    std::string network_state_file_;
     
     // Private methods
     void initializeComponents();
@@ -277,6 +299,7 @@ private:
     TradingAction interpretNeuralOutput(const std::vector<float>& outputs, float& confidence);
     float calculateConfidence(const std::vector<float>& outputs);
     void validateMarketData(const MarketData& data);
+    float calculateReward(const TradingDecision& last_decision, const MarketData& current_data);
     
     // Neural network interaction helpers
     std::vector<float> prepareNeuralInput(const MarketData& data);

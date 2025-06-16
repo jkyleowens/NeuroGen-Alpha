@@ -1,0 +1,54 @@
+# Makefile for Autonomous Trading Agent
+
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -I. -Iinclude # Added -Iinclude for nlohmann/json.hpp and NeuroGen headers
+LDFLAGS = -lcurl -lssl -lcrypto -pthread
+
+# Source files
+SRCS = src/TechnicalAnalysis.cpp \
+       src/NeuralNetworkInterface.cpp \
+       src/Portfolio.cpp \
+       src/KrakenApi.cpp \
+       src/CoinbaseAdvancedTradeApi.cpp \
+       src/AutonomousTradingAgent.cpp \
+       src/Simulation.cpp \
+       src/autonomous_trading_main.cpp
+
+# Object files
+OBJS = $(SRCS:.cpp=.o)
+
+# Target executable
+TARGET = autonomous_trading
+
+# Default target
+all: $(TARGET)
+
+# Link object files to create executable
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Compile source files to object files
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Clean up
+clean:
+	rm -f $(OBJS) $(TARGET)
+
+# Run the program
+run: $(TARGET)
+	./$(TARGET)
+
+# Run with specific parameters
+run_btc: $(TARGET)
+	./$(TARGET) --pair BTCUSD --interval 1h --ticks 100
+
+# Run with specific parameters and save state
+run_save: $(TARGET)
+	./$(TARGET) --pair BTCUSD --interval 1h --ticks 50 --save trading_state
+
+# Run with loaded state
+run_load: $(TARGET)
+	./$(TARGET) --load trading_state --ticks 50
+
+.PHONY: all clean run run_btc run_save run_load

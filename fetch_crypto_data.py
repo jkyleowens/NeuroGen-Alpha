@@ -1,361 +1,179 @@
-#!/usr/bin/env python3
-"""
-NeuroGen-Alpha Cryptocurrency Data Fetcher
-===========================================
-
-This script fetches real-time and historical cryptocurrency price data from multiple
-exchanges and converts it to CSV format for the NeuroGen-Alpha trading simulation.
-
-Features:
-- Fetches data from CoinGecko (free, no API key required)
-- Supports multiple cryptocurrency pairs
-- Historical data with configurable intervals
-- Real-time price updates
-- CSV export compatible with trading simulation
-- Error handling and retry logic
-- Rate limiting to respect API limits
-
-Usage:
-    python3 fetch_crypto_data.py --symbol BTCUSD --days 30 --interval 1h
-    python3 fetch_crypto_data.py --symbol ETHUSD --days 7 --interval 5m --realtime
-"""
-
-import requests
-import pandas as pd
-import argparse
+'''
+Python script to fetch cryptocurrency OHLCV data using ccxt and save it to CSV files.
+This data can be used by a C++ trading simulation.
+'''
+import ccxt
+import csv
+import datetime
+import random
 import time
-import json
 import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
-import logging
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# --- Configuration ---
+EXCHANGE_ID = 'kraken'  # Exchange to use (e.g., 'binance', 'coinbasepro', 'kraken')
+NUM_COINS_TO_FETCH = 25    # Number of different cryptocurrencies to fetch data for
+# Prefer pairs trading against these quote currencies
+PREFERRED_QUOTE_CURRENCIES = ['USDT', 'USD', 'BUSD'] 
+TIMEFRAME = '1d'          # Timeframe for OHLCV data (e.g., '1m', '5m', '1h', '1d')
+# Options for the number of days of historical data to fetch
+HISTORICAL_DAYS_OPTIONS = [90, 180, 270, 365]
+OUTPUT_DIR = "crypto_data_csv" # Directory to save CSV files
+API_CALL_DELAY_SECONDS = 10 # Delay between fetching data for different coins to respect rate limits
 
-class CryptoDataFetcher:
-    """
-    Fetches cryptocurrency data from CoinGecko API and exports to CSV
-    """
-    
-    def __init__(self):
-        self.base_url = "https://api.coingecko.com/api/v3"
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'NeuroGen-Alpha-Trading-Bot/1.0'
-        })
-        
-        # Rate limiting
-        self.last_request_time = 0
-        self.min_request_interval = 1.1  # Seconds between requests (respecting API limits)
-        
-        # Symbol mappings (symbol -> CoinGecko ID)
-        self.symbol_mappings = {
-            'BTCUSD': 'bitcoin',
-            'ETHUSD': 'ethereum',
-            'ADAUSD': 'cardano',
-            'DOTUSD': 'polkadot',
-            'SOLUSD': 'solana',
-            'MATICUSD': 'matic-network',
-            'LINKUSD': 'chainlink',
-            'AVAXUSD': 'avalanche-2',
-            'ATOMUSD': 'cosmos',
-            'ALGOUSD': 'algorand'
-        }
-        
-        # Ensure output directory exists
-        self.output_dir = "crypto_data_csv"
-        os.makedirs(self.output_dir, exist_ok=True)
-    
-    def _rate_limit(self):
-        """Enforce rate limiting to respect API limits"""
-        current_time = time.time()
-        time_since_last = current_time - self.last_request_time
-        if time_since_last < self.min_request_interval:
-            sleep_time = self.min_request_interval - time_since_last
-            time.sleep(sleep_time)
-        self.last_request_time = time.time()
-    
-    def _make_request(self, url: str, params: Dict = None, retries: int = 3) -> Optional[Dict]:
-        """Make API request with retry logic"""
-        for attempt in range(retries):
-            try:
-                self._rate_limit()
-                response = self.session.get(url, params=params, timeout=30)
-                response.raise_for_status()
-                return response.json()
-            except requests.exceptions.RequestException as e:
-                logger.warning(f"Request failed (attempt {attempt + 1}/{retries}): {e}")
-                if attempt < retries - 1:
-                    time.sleep(2 ** attempt)  # Exponential backoff
-                else:
-                    logger.error(f"Failed to fetch data after {retries} attempts")
-                    return None
-    
-    def get_coin_id(self, symbol: str) -> Optional[str]:
-        """Convert trading symbol to CoinGecko coin ID"""
-        # Remove USD suffix for lookup
-        clean_symbol = symbol.replace('USD', '').upper() + 'USD'
-        return self.symbol_mappings.get(clean_symbol)
-    
-    def fetch_current_price(self, symbol: str) -> Optional[Dict]:
-        """Fetch current price data for a cryptocurrency"""
-        coin_id = self.get_coin_id(symbol)
-        if not coin_id:
-            logger.error(f"Unsupported symbol: {symbol}")
-            return None
-        
-        url = f"{self.base_url}/simple/price"
-        params = {
-            'ids': coin_id,
-            'vs_currencies': 'usd',
-            'include_market_cap': 'true',
-            'include_24hr_vol': 'true',
-            'include_24hr_change': 'true',
-            'include_last_updated_at': 'true'
-        }
-        
-        data = self._make_request(url, params)
-        if data and coin_id in data:
-            return data[coin_id]
+def initialize_exchange(exchange_id):
+    '''Initializes and returns the ccxt exchange instance.'''
+    try:
+        exchange = getattr(ccxt, exchange_id)()
+        print(f"Successfully initialized exchange: {exchange_id}")
+        return exchange
+    except AttributeError:
+        print(f"Error: Exchange '{exchange_id}' not found in ccxt.")
         return None
-    
-    def fetch_historical_data(self, symbol: str, days: int = 30, interval: str = '1h') -> Optional[pd.DataFrame]:
-        """
-        Fetch historical OHLCV data
-        
-        Args:
-            symbol: Trading pair symbol (e.g., 'BTCUSD')
-            days: Number of days of historical data
-            interval: Data interval ('5m', '1h', '1d')
-        """
-        coin_id = self.get_coin_id(symbol)
-        if not coin_id:
-            logger.error(f"Unsupported symbol: {symbol}")
-            return None
-        
-        logger.info(f"Fetching {days} days of {interval} data for {symbol}")
-        
-        # For detailed OHLCV data, we need to use the OHLC endpoint
-        if days <= 1:
-            url = f"{self.base_url}/coins/{coin_id}/ohlc"
-            params = {'vs_currency': 'usd', 'days': days}
-        else:
-            # For longer periods, use market chart data and simulate OHLCV
-            url = f"{self.base_url}/coins/{coin_id}/market_chart"
-            params = {
-                'vs_currency': 'usd',
-                'days': days,
-                'interval': 'hourly' if interval in ['1h', '5m'] else 'daily'
-            }
-        
-        data = self._make_request(url, params)
-        if not data:
-            return None
-        
-        try:
-            if 'prices' in data:
-                # Market chart data - convert to OHLCV format
-                df = self._process_market_chart_data(data, interval)
-            else:
-                # OHLC data
-                df = self._process_ohlc_data(data)
-            
-            if df is not None and not df.empty:
-                logger.info(f"Successfully fetched {len(df)} data points")
-                return df
-            else:
-                logger.warning("No data received or data is empty")
-                return None
-                
-        except Exception as e:
-            logger.error(f"Error processing data: {e}")
-            return None
-    
-    def _process_market_chart_data(self, data: Dict, interval: str) -> pd.DataFrame:
-        """Process market chart data into OHLCV format"""
-        prices = data.get('prices', [])
-        volumes = data.get('total_volumes', [])
-        
-        if not prices:
-            return None
-        
-        # Convert to DataFrame
-        price_df = pd.DataFrame(prices, columns=['timestamp', 'price'])
-        volume_df = pd.DataFrame(volumes, columns=['timestamp', 'volume'])
-        
-        # Merge price and volume data
-        df = pd.merge(price_df, volume_df, on='timestamp', how='left')
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        
-        # Resample to create OHLCV data based on interval
-        if interval == '5m':
-            freq = '5T'
-        elif interval == '1h':
-            freq = '1H'
-        elif interval == '1d':
-            freq = '1D'
-        else:
-            freq = '1H'  # Default
-        
-        df.set_index('timestamp', inplace=True)
-        
-        # Create OHLCV data
-        ohlcv = df.resample(freq).agg({
-            'price': ['first', 'max', 'min', 'last'],
-            'volume': 'sum'
-        }).dropna()
-        
-        # Flatten column names
-        ohlcv.columns = ['open', 'high', 'low', 'close', 'volume']
-        ohlcv.reset_index(inplace=True)
-        
-        return ohlcv
-    
-    def _process_ohlc_data(self, data: List) -> pd.DataFrame:
-        """Process OHLC data from CoinGecko"""
-        if not data:
-            return None
-        
-        df = pd.DataFrame(data, columns=['timestamp', 'open', 'high', 'low', 'close'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        
-        # Add synthetic volume data (since OHLC endpoint doesn't provide volume)
-        df['volume'] = df['close'] * 1000  # Synthetic volume based on price
-        
-        return df
-    
-    def save_to_csv(self, df: pd.DataFrame, symbol: str, suffix: str = "") -> str:
-        """Save DataFrame to CSV file"""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{symbol}_{timestamp}{suffix}.csv"
-        filepath = os.path.join(self.output_dir, filename)
-        
-        # Format DataFrame for trading simulation compatibility
-        output_df = df.copy()
-        output_df['datetime'] = df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Reorder columns to match expected format
-        columns = ['datetime', 'open', 'high', 'low', 'close', 'volume']
-        output_df = output_df[columns]
-        
-        # Ensure numeric columns are properly formatted
-        numeric_columns = ['open', 'high', 'low', 'close', 'volume']
-        for col in numeric_columns:
-            output_df[col] = pd.to_numeric(output_df[col], errors='coerce')
-        
-        # Remove any rows with NaN values
-        output_df = output_df.dropna()
-        
-        # Save to CSV
-        output_df.to_csv(filepath, index=False, float_format='%.8f')
-        logger.info(f"Saved {len(output_df)} records to {filepath}")
-        
-        return filepath
-    
-    def fetch_and_save_historical(self, symbol: str, days: int = 30, interval: str = '1h') -> Optional[str]:
-        """Fetch historical data and save to CSV"""
-        df = self.fetch_historical_data(symbol, days, interval)
-        if df is not None:
-            suffix = f"_historical_{days}d_{interval}"
-            return self.save_to_csv(df, symbol, suffix)
+    except Exception as e:
+        print(f"Error initializing exchange '{exchange_id}': {e}")
         return None
+
+def get_random_trading_pairs(exchange, num_pairs, quote_currencies):
+    '''Fetches available markets and randomly selects trading pairs.'''
+    if not exchange:
+        return []
+    try:
+        print("Fetching available markets...")
+        markets = exchange.load_markets()
+        if not markets:
+            print("Warning: Could not load markets.")
+            return []
+
+        # Filter for active spot markets and preferred quote currencies
+        valid_pairs = []
+        for symbol, market_info in markets.items():
+            if market_info.get('active', True) and market_info.get('spot', True):
+                if '/' in symbol:
+                    base, quote = symbol.split('/')
+                    if quote in quote_currencies:
+                        valid_pairs.append(symbol)
+        
+        if not valid_pairs:
+            print(f"Warning: No active spot trading pairs found for quote currencies: {quote_currencies}")
+            return []
+
+        if num_pairs > len(valid_pairs):
+            print(f"Warning: Requested {num_pairs} pairs, but only {len(valid_pairs)} suitable pairs are available.")
+            num_pairs = len(valid_pairs)
+        
+        return random.sample(valid_pairs, num_pairs)
+
+    except ccxt.NetworkError as e:
+        print(f"Network error fetching markets: {e}")
+        return []
+    except ccxt.ExchangeError as e:
+        print(f"Exchange error fetching markets: {e}")
+        return []
+    except Exception as e:
+        print(f"An error occurred while fetching trading pairs: {e}")
+        return []
+
+def fetch_ohlcv_data(exchange, symbol, timeframe, days_to_fetch):
+    '''Fetches OHLCV data for a given symbol and timeframe.'''
+    if not exchange or not exchange.has['fetchOHLCV']:
+        print(f"Exchange '{exchange.id}' does not support fetching OHLCV data.")
+        return []
+
+    print(f"Fetching {timeframe} OHLCV data for '{symbol}' for the last {days_to_fetch} days...")
+    try:
+        # Calculate `since` timestamp (milliseconds ago)
+        since = exchange.milliseconds() - (days_to_fetch * 24 * 60 * 60 * 1000)
+        
+        # Limit parameter can be used if needed, but fetching by `since` is often sufficient
+        # Some exchanges might have a limit on the number of candles per request.
+        # For simplicity, we fetch all data since the calculated start time in one go if possible.
+        # If data is too large, pagination logic would be needed here.
+        ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since=since)
+        
+        if not ohlcv:
+            print(f"No OHLCV data returned for '{symbol}'.")
+            return []
+        
+        # Convert timestamp from ms to s for each entry
+        # Data format: [timestamp_ms, open, high, low, close, volume]
+        processed_ohlcv = []
+        for candle in ohlcv:
+            processed_ohlcv.append([
+                candle[0] // 1000, # timestamp in seconds
+                candle[1],         # open
+                candle[2],         # high
+                candle[3],         # low
+                candle[4],         # close
+                candle[5]          # volume
+            ])
+        return processed_ohlcv
+
+    except ccxt.NetworkError as e:
+        print(f"Network error fetching OHLCV for '{symbol}': {e}")
+    except ccxt.ExchangeError as e:
+        print(f"Exchange error fetching OHLCV for '{symbol}': {e}")
+    except Exception as e:
+        print(f"An error occurred fetching OHLCV for '{symbol}': {e}")
+    return []
+
+def save_to_csv(data, symbol, timeframe, output_dir):
+    '''Saves the OHLCV data to a CSV file.'''
+    if not data:
+        print(f"No data to save for '{symbol}'.")
+        return
+
+    os.makedirs(output_dir, exist_ok=True)
     
-    def fetch_and_save_realtime(self, symbol: str) -> Optional[str]:
-        """Fetch current price and save as single-row CSV"""
-        current_data = self.fetch_current_price(symbol)
-        if not current_data:
-            return None
-        
-        # Create a single-row DataFrame with current data
-        now = datetime.now()
-        price = current_data['usd']
-        
-        # Since we only have current price, we'll use it for all OHLC values
-        df = pd.DataFrame([{
-            'timestamp': now,
-            'open': price,
-            'high': price * 1.001,  # Slight variation for high
-            'low': price * 0.999,   # Slight variation for low
-            'close': price,
-            'volume': current_data.get('usd_24h_vol', 1000000)  # Use 24h volume or default
-        }])
-        
-        suffix = "_realtime"
-        return self.save_to_csv(df, symbol, suffix)
-    
-    def start_realtime_monitoring(self, symbols: List[str], update_interval: int = 60):
-        """Start real-time monitoring and CSV updates"""
-        logger.info(f"Starting real-time monitoring for {symbols}")
-        logger.info(f"Update interval: {update_interval} seconds")
-        
-        try:
-            while True:
-                for symbol in symbols:
-                    try:
-                        filepath = self.fetch_and_save_realtime(symbol)
-                        if filepath:
-                            logger.info(f"Updated {symbol} data: {filepath}")
-                        else:
-                            logger.warning(f"Failed to update {symbol}")
-                    except Exception as e:
-                        logger.error(f"Error updating {symbol}: {e}")
-                
-                logger.info(f"Sleeping for {update_interval} seconds...")
-                time.sleep(update_interval)
-                
-        except KeyboardInterrupt:
-            logger.info("Real-time monitoring stopped by user")
+    # Sanitize symbol for filename (replace '/' with '_')
+    filename_symbol = symbol.replace('/', '_')
+    now_str = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    filename = f"{filename_symbol}_{timeframe}_{now_str}.csv"
+    filepath = os.path.join(output_dir, filename)
+
+    try:
+        with open(filepath, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['timestamp', 'open', 'high', 'low', 'close', 'volume']) # Header
+            writer.writerows(data)
+        print(f"Successfully saved data for '{symbol}' to '{filepath}'")
+    except IOError as e:
+        print(f"Error writing CSV file '{filepath}': {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred while saving CSV for '{symbol}': {e}")
 
 def main():
-    parser = argparse.ArgumentParser(description='Fetch cryptocurrency data for NeuroGen-Alpha trading')
-    parser.add_argument('--symbol', default='BTCUSD', help='Trading pair symbol (default: BTCUSD)')
-    parser.add_argument('--days', type=int, default=7, help='Days of historical data (default: 7)')
-    parser.add_argument('--interval', default='1h', choices=['5m', '1h', '1d'], 
-                       help='Data interval (default: 1h)')
-    parser.add_argument('--realtime', action='store_true', help='Enable real-time monitoring')
-    parser.add_argument('--update-interval', type=int, default=60, 
-                       help='Real-time update interval in seconds (default: 60)')
-    parser.add_argument('--multiple-symbols', nargs='+', 
-                       help='Fetch data for multiple symbols')
+    '''Main function to orchestrate fetching and saving data.'''
+    print(f"Starting crypto data fetching process using ccxt (Exchange: {EXCHANGE_ID}).")
     
-    args = parser.parse_args()
-    
-    fetcher = CryptoDataFetcher()
-    
-    # Determine which symbols to process
-    symbols = args.multiple_symbols if args.multiple_symbols else [args.symbol]
-    
-    logger.info("🚀 NeuroGen-Alpha Cryptocurrency Data Fetcher")
-    logger.info("=" * 50)
-    
-    if args.realtime:
-        # Real-time monitoring mode
-        logger.info("Starting real-time monitoring mode...")
-        fetcher.start_realtime_monitoring(symbols, args.update_interval)
-    else:
-        # Historical data mode
-        for symbol in symbols:
-            logger.info(f"Fetching historical data for {symbol}")
-            logger.info(f"Period: {args.days} days, Interval: {args.interval}")
-            
-            filepath = fetcher.fetch_and_save_historical(symbol, args.days, args.interval)
-            if filepath:
-                logger.info(f"✅ Successfully saved data to {filepath}")
-                
-                # Also fetch current price for immediate use
-                realtime_file = fetcher.fetch_and_save_realtime(symbol)
-                if realtime_file:
-                    logger.info(f"✅ Current price saved to {realtime_file}")
-            else:
-                logger.error(f"❌ Failed to fetch data for {symbol}")
-    
-    logger.info("Data fetching completed!")
-    logger.info(f"CSV files saved in: {fetcher.output_dir}/")
+    exchange = initialize_exchange(EXCHANGE_ID)
+    if not exchange:
+        print("Exiting due to exchange initialization failure.")
+        return
+
+    selected_pairs = get_random_trading_pairs(exchange, NUM_COINS_TO_FETCH, PREFERRED_QUOTE_CURRENCIES)
+
+    if not selected_pairs:
+        print("Could not select any trading pairs. Exiting.")
+        return
+
+    print(f"Selected trading pairs for data fetching: {selected_pairs}")
+
+    for pair_symbol in selected_pairs:
+        days_to_fetch = random.choice(HISTORICAL_DAYS_OPTIONS)
+        ohlcv_data = fetch_ohlcv_data(exchange, pair_symbol, TIMEFRAME, days_to_fetch)
+        
+        if ohlcv_data:
+            save_to_csv(ohlcv_data, pair_symbol, TIMEFRAME, OUTPUT_DIR)
+        else:
+            print(f"Skipping CSV save for '{pair_symbol}' due to no data fetched.")
+        
+        print("---")
+        # Respect API rate limits
+        if len(selected_pairs) > 1 and selected_pairs.index(pair_symbol) < len(selected_pairs) - 1: # No need to sleep if only one pair or it's the last one
+             print(f"Waiting for {API_CALL_DELAY_SECONDS} seconds before next API call...")
+             time.sleep(API_CALL_DELAY_SECONDS)
+
+    print("Crypto data fetching process completed.")
 
 if __name__ == "__main__":
     main()
