@@ -11,7 +11,7 @@
 
 # Compilers and Linker
 # We use nvcc for the final linking stage to simplify inclusion of CUDA libraries.
-CXX := g++
+CXX := clang++
 NVCC := nvcc
 LINKER := $(NVCC)
 
@@ -39,6 +39,7 @@ OBJS := $(OBJS_CPP) $(OBJS_CU)
 # Autonomous Trading Agent specific source files
 TRADING_SRCS := $(SRCDIR)/TechnicalAnalysis.cpp \
                 $(SRCDIR)/NeuralNetworkInterface.cpp \
+				$(SRCDIR)/NetworkPresets.cpp \
                 $(SRCDIR)/Portfolio.cpp \
                 $(SRCDIR)/CoinbaseAdvancedTradeApi.cpp \
                 $(SRCDIR)/AutonomousTradingAgent.cpp \

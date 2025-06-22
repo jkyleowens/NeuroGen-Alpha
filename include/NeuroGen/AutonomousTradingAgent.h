@@ -15,6 +15,13 @@
 #include <NeuroGen/NeuralNetworkInterface.h>// Will be copied to include/NeuroGen/
 #include <NeuroGen/PriceTick.h>             // For PriceTick structure
 
+// Forward declare CoinbaseAdvancedTradeApi to avoid full include if only pointer is used
+class CoinbaseAdvancedTradeApi; 
+
+namespace NeuroGen { // Added namespace to match Portfolio.h and others
+// Using NeuroGen namespace for consistency
+class Portfolio; // Forward declaration, already included above but good practice inside namespace
+
 class AutonomousTradingAgent {
 public:
     enum class TradingDecision {
@@ -24,47 +31,32 @@ public:
     };
 
     struct DecisionRecord {
-        int tick_index; // Added
+        int tick_index; 
         TradingDecision decision;
         double confidence;
-        double price_at_decision; // Renamed from price
-        double quantity; // Quantity traded for this decision (0 if HOLD or trade failed/not executed)
+        double price_at_decision; 
+        double quantity; 
         std::chrono::system_clock::time_point timestamp;
-        double portfolio_value_before; // Added
-        double reward_after; // Added
+        double portfolio_value_before; 
+        double reward_after; 
         // Potentially add P&L after trade, etc.
     };
 
-    AutonomousTradingAgent(CoinbaseAdvancedTradeApi* api_client = nullptr); // Modified constructor
+    // Modified constructor: Takes symbol, NN config, portfolio reference, and optional API client
+    AutonomousTradingAgent(const std::string& symbol, 
+                           const NeuralNetworkInterface::Config& nn_config, // Assuming NeuralNetworkInterface::Config is defined
+                           Portfolio& portfolio_ref, 
+                           CoinbaseAdvancedTradeApi* api_client = nullptr);
     ~AutonomousTradingAgent();
-
-    /**
-     * @brief Initializes the agent for a specific trading symbol.
-     *        Portfolio and TechnicalAnalysis are initialized with default or empty states.
-     *        NeuralNetworkInterface is initialized.
-     * @param symbol The trading symbol (e.g., "BTC-USD" for Coinbase).
-     * @param initial_cash The starting cash for the portfolio.
-     * @param coinbase_api_ptr Pointer to the CoinbaseAdvancedTradeApi instance (can be nullptr).
-     * @return True if initialization was successful, false otherwise.
-     */
-    bool initialize(const std::string& symbol, double initial_cash, CoinbaseAdvancedTradeApi* coinbase_api_ptr); // Modified signature
-
-    /**
-     * @brief Makes a trading decision based on the current market state.
-     * @param tick_index The current index in the time series data.
-     * @param current_price The current market price of the asset.
-     * @return The trading decision (BUY, SELL, HOLD).
-     */
-    TradingDecision makeDecision(int tick_index, double current_price);
 
     /**
      * @brief Makes a trading decision based on the current market state using full OHLCV data.
      * This version is preferred for CSV-based simulation as it provides more accurate technical analysis.
      * @param tick_index The current index in the time series data.
      * @param price_tick The complete OHLCV data for the current tick.
-     * @return The trading decision (BUY, SELL, HOLD).
+     * @return The DecisionRecord struct containing details of the decision made.
      */
-    TradingDecision makeDecision(int tick_index, const PriceTick& price_tick);
+    DecisionRecord makeDecision(int tick_index, const PriceTick& price_tick);
 
     /**
      * @brief Receives a reward signal from the simulation environment.
@@ -74,69 +66,77 @@ public:
     void receiveReward(double reward);
 
     /**
-     * @brief Appends a new price tick to the agent's internal price series and updates TA.
+     * @brief Appends a new price tick to the agent\'s internal price series and updates TA.
      * @param current_tick The latest PriceTick data.
      */
-    void appendPriceTick(const PriceTick& current_tick); // Changed from setPriceSeries
+    void appendPriceTick(const PriceTick& current_tick); 
 
     /**
-     * @brief Sets or updates the full price series for the technical analyzer and the agent's internal copy.
+     * @brief Sets or updates the full price series for the technical analyzer and the agent\'s internal copy.
      * @param price_series The vector of PriceTick data.
      */
     void setFullPriceSeries(const std::vector<PriceTick>& price_series);
 
     /**
-     * @brief Saves the agent's state (including NN state, portfolio, etc.).
+     * @brief Saves the agent\'s state (including NN state, portfolio, etc.).
      * @param filename The base filename for saving state files.
      * @return True if successful, false otherwise.
      */
     bool saveState(const std::string& filename) const;
 
     /**
-     * @brief Loads the agent's state.
+     * @brief Loads the agent\'s state.
      * @param filename The base filename for loading state files.
      * @return True if successful, false otherwise.
      */
     bool loadState(const std::string& filename);
 
     const std::vector<DecisionRecord>& getDecisionHistory() const { return decision_history_; }
-    const Portfolio& getPortfolio() const { return portfolio_; }
+    Portfolio& getPortfolio() { return portfolio_ref_; } // Return non-const reference
+    const Portfolio& getPortfolio() const { return portfolio_ref_; } // Return const reference
     double getCumulativeReward() const { return cumulative_reward_; }
     double getEpsilon() const { return epsilon_; }
-    bool isInitialized() const { return is_initialized_; } // Added getter
+    bool isInitialized() const { return is_initialized_; } 
 
 private:
     // Helper methods for decision making and state management
     TradingDecision _determineActionFromSignal(double prediction_signal, double& confidence);
-    std::map<std::string, double> _getCurrentMarketFeatures(int current_tick_index, double current_price);
+    
+    /**
+     * @brief Extracts market features from the given PriceTick.
+     * @param price_tick The current PriceTick data.
+     * @return A map of feature names to their values.
+     */
+    std::map<std::string, double> _getCurrentMarketFeatures(const PriceTick& price_tick);
+    
     double _determineQuantity(double current_price, TradingDecision decision, double confidence);
-    void _logDecision(const DecisionRecord& record); // Assuming this is also a private helper, was called in makeDecision
+    void _logDecision(const DecisionRecord& record); 
 
-    // Reordered to generally match typical initialization order or logical grouping
     std::string symbol_;
-    CoinbaseAdvancedTradeApi* coinbase_api_ptr_; // Pointer to the CoinbaseAdvancedTradeApi instance
-    Portfolio portfolio_;
+    CoinbaseAdvancedTradeApi* coinbase_api_ptr_; 
+    Portfolio& portfolio_ref_; // Changed from owned Portfolio to reference
     NeuralNetworkInterface nn_interface_;
-    TechnicalAnalysis tech_analyzer_; // Initialized with price_series_
+    TechnicalAnalysis tech_analyzer_; 
 
     std::vector<PriceTick> price_series_;
-    size_t max_price_series_size_; // Added
+    size_t max_price_series_size_; 
 
     std::vector<DecisionRecord> decision_history_;
     std::vector<double> reward_history_;
     double cumulative_reward_;
-    double epsilon_; // For exploration-exploitation strategy
-    double last_decision_price_; // Added
+    double epsilon_; 
+    double last_decision_price_; 
     static constexpr double EPSILON_DECAY = 0.995;
 
-    bool is_initialized_; // Added
+    bool is_initialized_; 
     std::ofstream log_file_;
-    std::stringstream decision_log_buffer_; // Added
+    std::stringstream decision_log_buffer_; 
 
-    // Private helper methods as in the C++ file
-    TradingDecision _determineAction(double predicted_price, double current_price, double& confidence);
-    double _calculateConfidence(double predicted_price, double current_price);
-    double _determineQuantity(TradingDecision decision, double confidence, double current_price);
+    // These seem like older/alternative helper methods, review if still needed or should be removed/merged.
+    // TradingDecision _determineAction(double predicted_price, double current_price, double& confidence);
+    // double _calculateConfidence(double predicted_price, double current_price);
+    // double _determineQuantity(TradingDecision decision, double confidence, double current_price); // Duplicate signature, one above is (double, TD, double)
 };
 
+} // namespace NeuroGen
 #endif // NEUROGEN_AUTONOMOUSTRADINGAGENT_H

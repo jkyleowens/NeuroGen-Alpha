@@ -91,7 +91,8 @@ namespace NetworkPresets {
         
         // Low spike threshold for high sensitivity
         config.spike_threshold = 20.0;
-        
+
+        config.finalizeConfig();
         return config;
     }
 
@@ -136,7 +137,8 @@ namespace NetworkPresets {
         
         // Standard spike threshold
         config.spike_threshold = 30.0;
-        
+
+        config.finalizeConfig();
         return config;
     }
 
@@ -181,7 +183,8 @@ namespace NetworkPresets {
         
         // Standard threshold
         config.spike_threshold = 30.0;
-        
+
+        config.finalizeConfig();
         return config;
     }
 
@@ -226,7 +229,8 @@ namespace NetworkPresets {
         
         // Standard threshold
         config.spike_threshold = 30.0;
-        
+
+        config.finalizeConfig();
         return config;
     }
 
@@ -271,8 +275,10 @@ namespace NetworkPresets {
         
         // Standard threshold
         config.spike_threshold = 30.0;
-        
+
+        config.finalizeConfig();
         return config;
     }
+
 
 } // namespace NetworkPresets

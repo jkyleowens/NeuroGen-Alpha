@@ -1,0 +1,1479 @@
+Loading data from training_run_20250621_154302/data/WMT_1d_20170903_to_20190501.csv...
+Loaded 217 data points.
+[Portfolio] Initialized for asset: WMT with initial cash: 10000.00. Initial Portfolio Value: 10000.00
+[NeuralNetworkInterface] Constructor called.
+[NeuralNetworkInterface] Initializing...
+Warning: NN model path is empty. Initializing in a mock state.
+[NeuralNetworkInterface] Initialized successfully.
+[AutonomousTradingAgent] Agent initialized for WMT without API client (CSV mode).
+Attempting to load state from prefix: training_run_20250621_154302/best_model_state/best_agent_state
+AutonomousTradingAgent::loadState called with prefix: training_run_20250621_154302/best_model_state/best_agent_state
+[NeuralNetworkInterface] State loaded successfully from training_run_20250621_154302/best_model_state/best_agent_state_nn_state.json_nn_state.json
+[Portfolio] State loaded from training_run_20250621_154302/best_model_state/best_agent_state_portfolio_state.json
+[Portfolio] Loaded State -> Asset: HD, Cash: 5010.46, Coins: 45.10094662. Initial Portfolio Value: 10000.00000000
+AutonomousTradingAgent full state loaded from prefix: training_run_20250621_154302/best_model_state/best_agent_state
+Agent state loaded successfully.
+[Simulation] Initialized with 217 data points.
+[Simulation] API client is NULL (offline/CSV mode).
+
+Starting Simulation for WMT...
+[Simulation] Starting simulation run...
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=24.93137932 H=24.99399822 L=24.79719400 C=24.96119752 V=23899800.00000000
+[Agent_Features] Generated 15 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.11029625 H=25.21167918 L=24.71967192 C=24.86876467 V=24276000.00000000
+[Agent_Features] Generated 17 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.29218483 H=25.30113063 L=25.07749070 C=25.18483862 V=32439000.00000000
+[Agent_Features] Generated 17 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 2.25504733 HD @ 25.18. New Cash: 5067.25, New Coins: 42.84589929
+[Agent] Received reward: -0.35538704
+[NeuralNetworkInterface] Received reward signal: -0.35538704
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.78419304 H=25.82295704 L=25.19080126 C=25.22360197 V=47818500.00000000
+[Agent_Features] Generated 17 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: -0.10500000
+[NeuralNetworkInterface] Received reward signal: -0.10500000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.63808060 H=25.95714013 L=25.57247919 C=25.80208241 V=30378600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 2.14229496 HD @ 25.80. New Cash: 5122.52, New Coins: 40.70360433
+[Agent] Received reward: 0.37548121
+[NeuralNetworkInterface] Received reward signal: 0.37548121
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.90943909 H=26.08835177 L=25.50986891 C=25.61423436 V=30899100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 9.99936993 HD @ 25.61. New Cash: 4866.40, New Coins: 50.70297426
+[Agent] Received reward: 0.38870745
+[NeuralNetworkInterface] Received reward signal: 0.38870745
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.60230446 H=26.02871029 L=25.55161214 C=25.89750915 V=25401000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.53968048 H=25.70368401 L=25.50091647 C=25.61422770 V=24766800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 9.49940390 HD @ 25.61. New Cash: 4623.08, New Coins: 60.20237816
+[Agent] Received reward: -0.36018595
+[NeuralNetworkInterface] Received reward signal: -0.36018595
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.04767609 H=25.62615886 L=24.86876343 C=25.53968333 V=24375300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.17887878 H=25.36077223 L=25.07451335 C=25.07451335 V=13188600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 3.01011891 HD @ 25.07. New Cash: 4698.56, New Coins: 57.19225925
+[Agent] Received reward: -0.38537856
+[NeuralNetworkInterface] Received reward signal: -0.38537856
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.21764183 H=25.51880980 L=25.12818551 C=25.32797056 V=16102500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 9.27542784 HD @ 25.33. New Cash: 4463.63, New Coins: 66.46768709
+[Agent] Received reward: -0.38049167
+[NeuralNetworkInterface] Received reward signal: -0.38049167
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.19975281 H=25.30710075 L=24.99400444 C=25.10731568 V=16841100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 8.88909742 HD @ 25.11. New Cash: 4240.45, New Coins: 75.35678450
+[Agent] Received reward: 0.38325266
+[NeuralNetworkInterface] Received reward signal: 0.38325266
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.62316895 H=25.78418995 L=25.27727204 C=25.34585424 V=19726200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 3.76783923 HD @ 25.35. New Cash: 4335.95, New Coins: 71.58894528
+[Agent] Received reward: -0.38829548
+[NeuralNetworkInterface] Received reward signal: -0.38829548
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.00485611 H=26.04063932 L=25.60826848 C=25.62317758 V=18145200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.80208397 H=25.98695990 L=25.76033917 C=25.96012420 V=16787700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 8.35116426 HD @ 25.96. New Cash: 4119.15, New Coins: 79.94010954
+[Agent] Received reward: -0.35482339
+[NeuralNetworkInterface] Received reward signal: -0.35482339
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.79911041 H=26.06449693 L=25.70965407 C=25.92434827 V=14665800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.15097046 H=26.23744430 L=25.79314510 C=25.79911011 V=19165800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.13306999 H=26.15692489 L=25.89153847 C=26.12710669 V=13341600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 7.88290111 HD @ 26.13. New Cash: 3913.19, New Coins: 87.82301065
+[Agent] Received reward: -0.35878700
+[NeuralNetworkInterface] Received reward signal: -0.35878700
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.29708099 H=26.44915625 L=26.06151270 C=26.06151270 V=17734500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.26129913 H=26.59526787 L=26.22253512 C=26.33882716 V=15136500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 7.42855888 HD @ 26.34. New Cash: 3717.53, New Coins: 95.25156953
+[Agent] Received reward: -0.36862412
+[NeuralNetworkInterface] Received reward signal: -0.36862412
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.15692711 H=26.38354955 L=26.06449000 C=26.19867362 V=14649300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.76257848 HD @ 26.20. New Cash: 3842.30, New Coins: 90.48899105
+[Agent] Received reward: 0.36832486
+[NeuralNetworkInterface] Received reward signal: 0.36832486
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.25830841 H=26.29110912 L=26.00186949 C=26.06150589 V=14445300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.13009262 H=26.28515037 L=26.05554710 C=26.13605763 V=12450000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 7.35058120 HD @ 26.14. New Cash: 3650.19, New Coins: 97.83957226
+[Agent] Received reward: 0.36876796
+[NeuralNetworkInterface] Received reward signal: 0.36876796
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.22849655 H=26.38951761 L=26.12413111 C=26.27620637 V=16768500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.94580681 HD @ 26.28. New Cash: 3467.68, New Coins: 104.78537907
+[Agent] Received reward: -0.38376114
+[NeuralNetworkInterface] Received reward signal: -0.38376114
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.21060181 H=26.24638502 L=25.97503525 C=26.02274507 V=17427300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.23926895 HD @ 26.02. New Cash: 3604.02, New Coins: 99.54611012
+[Agent] Received reward: -0.39933015
+[NeuralNetworkInterface] Received reward signal: -0.39933015
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.30900764 H=26.66683128 L=26.29409854 C=26.38951818 V=19644900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.27917862 H=26.50281851 L=26.24935872 C=26.43125381 V=14038200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.81772382 HD @ 26.43. New Cash: 3423.82, New Coins: 106.36383393
+[Agent] Received reward: -0.37527014
+[NeuralNetworkInterface] Received reward signal: -0.37527014
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.50282478 H=26.52071639 L=26.20762012 C=26.24041912 V=18032100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.52394073 HD @ 26.24. New Cash: 3252.63, New Coins: 112.88777467
+[Agent] Received reward: 0.38977340
+[NeuralNetworkInterface] Received reward signal: 0.38977340
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.60719299 H=26.73541333 L=26.47897265 C=26.53861077 V=20124300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.64438873 HD @ 26.54. New Cash: 3402.42, New Coins: 107.24338593
+[Agent] Received reward: 0.35550611
+[NeuralNetworkInterface] Received reward signal: 0.35550611
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.31198502 H=26.57736976 L=26.20463709 C=26.49686095 V=15150000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.42042483 HD @ 26.50. New Cash: 3232.30, New Coins: 113.66381076
+[Agent] Received reward: -0.38623611
+[NeuralNetworkInterface] Received reward signal: -0.38623611
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.46704674 H=26.49090165 L=26.12711471 C=26.22253434 V=12918300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.68319054 HD @ 26.22. New Cash: 3381.33, New Coins: 107.98062023
+[Agent] Received reward: -0.39974968
+[NeuralNetworkInterface] Received reward signal: -0.39974968
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.71752357 H=26.92028945 L=26.53861261 C=26.59526653 V=17241600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.35701212 HD @ 26.60. New Cash: 3212.26, New Coins: 114.33763235
+[Agent] Received reward: 0.35470862
+[NeuralNetworkInterface] Received reward signal: 0.35470862
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.73839188 H=26.83083070 L=26.57737084 C=26.63104566 V=13954800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.76820946 H=26.94414130 L=26.73242795 C=26.78610106 V=13580100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.71688162 HD @ 26.79. New Cash: 3365.40, New Coins: 108.62075073
+[Agent] Received reward: -0.35545545
+[NeuralNetworkInterface] Received reward signal: -0.35545545
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.85170746 H=26.90538228 L=26.64894158 C=26.82785255 V=15123300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.69574738 H=26.88169711 L=26.62076717 C=26.83071037 V=14183700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.04664803 H=27.10363270 L=26.58777255 C=26.60276996 V=24734700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.32527210 HD @ 26.60. New Cash: 3197.13, New Coins: 114.94602283
+[Agent] Received reward: 0.40918820
+[NeuralNetworkInterface] Received reward signal: 0.40918820
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.88469124 H=27.15461889 L=26.80371483 C=27.05264714 V=17637600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.24759674 H=27.32857488 L=26.88169693 C=26.88469504 V=17510400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.05864716 H=27.11563183 L=26.89369107 C=27.06764320 V=25850700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: -0.10500000
+[NeuralNetworkInterface] Received reward signal: -0.10500000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.58396530 H=30.05483502 L=29.36502262 C=30.02484363 V=127893900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: -0.10500000
+[NeuralNetworkInterface] Received reward signal: -0.10500000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.34702492 H=29.89287302 L=29.27504284 C=29.32302975 V=49389900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.74730114 HD @ 29.32. New Cash: 3365.65, New Coins: 109.19872169
+[Agent] Received reward: 0.35357961
+[NeuralNetworkInterface] Received reward signal: 0.35357961
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.79217529 H=29.47898777 L=28.77717960 C=29.29303977 V=38037900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.45993608 HD @ 29.29. New Cash: 3525.59, New Coins: 103.73878561
+[Agent] Received reward: 0.41127760
+[NeuralNetworkInterface] Received reward signal: 0.41127760
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.81617165 H=28.90014617 L=28.60022881 C=28.78018060 V=31593900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.69320107 H=29.04710497 L=28.56123791 C=28.85215750 V=23297100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.18693928 HD @ 28.85. New Cash: 3675.25, New Coins: 98.55184633
+[Agent] Received reward: 0.37546740
+[NeuralNetworkInterface] Received reward signal: 0.37546740
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.54624557 H=28.75018912 L=28.51025453 C=28.64221769 V=18289200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.47726631 H=28.69020935 L=28.29731621 C=28.51925530 V=25782900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.44344702 HD @ 28.52. New Cash: 3491.48, New Coins: 104.99529334
+[Agent] Received reward: 0.35625667
+[NeuralNetworkInterface] Received reward signal: 0.35625667
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.35429573 H=28.67521017 L=28.27931725 C=28.57023686 V=21120900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.24976467 HD @ 28.57. New Cash: 3641.47, New Coins: 99.74552868
+[Agent] Received reward: 0.36800363
+[NeuralNetworkInterface] Received reward signal: 0.36800363
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.81316948 H=28.89714743 L=28.35129417 C=28.42327454 V=29949000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.98727643 HD @ 28.42. New Cash: 3783.23, New Coins: 94.75825224
+[Agent] Received reward: -0.40576684
+[NeuralNetworkInterface] Received reward signal: -0.40576684
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.68420410 H=29.04110956 L=28.65121288 C=28.87615347 V=23588400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.55077840 HD @ 28.88. New Cash: 3594.06, New Coins: 101.30903064
+[Agent] Received reward: -0.37835486
+[NeuralNetworkInterface] Received reward signal: -0.37835486
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.82216835 H=28.94213736 L=28.62722258 C=28.64221656 V=21176100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.27406813 HD @ 28.64. New Cash: 3414.36, New Coins: 107.58309877
+[Agent] Received reward: 0.37528801
+[NeuralNetworkInterface] Received reward signal: 0.37528801
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.75018883 H=28.92414269 L=28.52524994 C=28.84916077 V=18974100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.37915494 HD @ 28.85. New Cash: 3569.55, New Coins: 102.20394384
+[Agent] Received reward: 0.36419068
+[NeuralNetworkInterface] Received reward signal: 0.36419068
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.60022926 H=28.87315506 L=28.56423993 C=28.73219242 V=24842100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.11019719 HD @ 28.73. New Cash: 3716.37, New Coins: 97.09374664
+[Agent] Received reward: 0.35474990
+[NeuralNetworkInterface] Received reward signal: 0.35474990
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.97812462 H=29.04110722 L=28.60022556 C=28.69319955 V=28423800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.85468733 HD @ 28.69. New Cash: 3855.67, New Coins: 92.23905931
+[Agent] Received reward: -0.38146251
+[NeuralNetworkInterface] Received reward signal: -0.38146251
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.92713928 H=29.00811741 L=28.79517442 C=28.95113102 V=18452400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.74119186 H=28.93613936 L=28.68420718 C=28.73219410 V=20017200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.70966672 HD @ 28.73. New Cash: 3662.89, New Coins: 98.94872604
+[Agent] Received reward: 0.36132587
+[NeuralNetworkInterface] Received reward signal: 0.36132587
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.06210518 H=29.14908297 L=28.81917076 C=28.82517041 V=24997800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.98412132 H=29.29003831 L=28.93913424 C=29.17306914 V=19390500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.78317642 H=29.01411322 L=28.77118055 C=28.87015248 V=17700000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.94743630 HD @ 28.87. New Cash: 3805.72, New Coins: 94.00128973
+[Agent] Received reward: 0.38417785
+[NeuralNetworkInterface] Received reward signal: 0.38417785
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.52824974 H=28.67820843 L=28.46526713 C=28.58823253 V=22958700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.36929321 H=28.44427170 L=28.29731284 C=28.35129769 V=18958200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.70006449 HD @ 28.35. New Cash: 3938.97, New Coins: 89.30122525
+[Agent] Received reward: -0.35814477
+[NeuralNetworkInterface] Received reward signal: -0.35814477
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.43826866 H=28.63621595 L=28.30330570 C=28.41727332 V=15989400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.93059396 HD @ 28.42. New Cash: 3742.02, New Coins: 96.23181920
+[Agent] Received reward: -0.36071155
+[NeuralNetworkInterface] Received reward signal: -0.36071155
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.62122345 H=28.66921037 L=28.23732812 C=28.33030384 V=20279400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.60427628 HD @ 28.33. New Cash: 3554.92, New Coins: 102.83609548
+[Agent] Received reward: 0.39112828
+[NeuralNetworkInterface] Received reward signal: 0.39112828
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.56423950 H=28.75918527 L=28.45626809 C=28.66321144 V=17025300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.71719742 H=28.72919329 L=28.47726113 C=28.59722842 V=16656900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.14180477 HD @ 28.60. New Cash: 3701.96, New Coins: 97.69429071
+[Agent] Received reward: -0.37092293
+[NeuralNetworkInterface] Received reward signal: -0.37092293
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.76218414 H=28.87915332 L=28.68120601 C=28.76818208 V=28590300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.43412794 HD @ 28.77. New Cash: 3516.87, New Coins: 104.12841865
+[Agent] Received reward: -0.36751380
+[NeuralNetworkInterface] Received reward signal: -0.36751380
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.46826935 H=28.79218194 L=28.45027554 C=28.62422771 V=16011000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.52224731 H=28.94812985 L=28.48925610 C=28.78917514 V=18579600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.20642093 HD @ 28.79. New Cash: 3666.75, New Coins: 98.92199772
+[Agent] Received reward: 0.38245081
+[NeuralNetworkInterface] Received reward signal: 0.38245081
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.36929321 H=28.66921059 L=28.34829786 C=28.52225173 V=17755800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.23132896 H=28.48026130 L=28.13835324 C=28.24932449 V=16090200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.94609989 HD @ 28.25. New Cash: 3806.48, New Coins: 93.97589783
+[Agent] Received reward: -0.35334388
+[NeuralNetworkInterface] Received reward signal: -0.35334388
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.16534424 H=28.30330704 L=28.09936181 C=28.27631375 V=18918900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.31230545 H=28.39028375 L=28.20433404 C=28.27931423 V=14982900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.69879489 HD @ 28.28. New Cash: 3939.36, New Coins: 89.27710294
+[Agent] Received reward: 0.36336283
+[NeuralNetworkInterface] Received reward signal: 0.36336283
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.53724670 H=28.67520952 L=28.14735173 C=28.17134518 V=23263800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.21333122 H=28.65421118 L=28.20433346 C=28.64221359 V=18982200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.46385515 HD @ 28.64. New Cash: 4067.21, New Coins: 84.81324779
+[Agent] Received reward: 0.40240763
+[NeuralNetworkInterface] Received reward signal: 0.40240763
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.25532532 H=28.34230139 L=27.95240810 C=28.21333633 V=18135900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.98538971 H=28.24931941 L=27.85942451 C=28.15034577 V=20080200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.24066239 HD @ 28.15. New Cash: 4186.59, New Coins: 80.57258540
+[Agent] Received reward: 0.37274627
+[NeuralNetworkInterface] Received reward signal: 0.37274627
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.39928246 H=28.47126283 L=27.89841797 C=27.96739852 V=17287800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 7.48476331 HD @ 27.97. New Cash: 3977.26, New Coins: 88.05734871
+[Agent] Received reward: 0.43970548
+[NeuralNetworkInterface] Received reward signal: 0.43970548
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.11609077 H=29.31403810 L=28.54924380 C=28.68420680 V=34796700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 4.40286744 HD @ 28.68. New Cash: 4103.55, New Coins: 83.65448128
+[Agent] Received reward: -0.38513143
+[NeuralNetworkInterface] Received reward signal: -0.38513143
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.72019386 H=29.34702525 L=28.70219834 C=28.97212601 V=27008400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 7.08189411 HD @ 28.97. New Cash: 3898.37, New Coins: 90.73637539
+[Agent] Received reward: -0.37862304
+[NeuralNetworkInterface] Received reward signal: -0.37862304
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.16834641 H=28.87915408 L=28.07237258 C=28.73519162 V=29779500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.78327309 HD @ 28.74. New Cash: 3703.45, New Coins: 97.51964847
+[Agent] Received reward: -0.38835748
+[NeuralNetworkInterface] Received reward signal: -0.38835748
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.43527031 H=28.54324172 L=28.09336400 C=28.42027461 V=25661700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.51551478 HD @ 28.42. New Cash: 3518.28, New Coins: 104.03516326
+[Agent] Received reward: -0.35960239
+[NeuralNetworkInterface] Received reward signal: -0.35960239
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.13835716 H=28.48926303 L=28.13835716 C=28.34230244 V=24916500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.20676756 HD @ 28.34. New Cash: 3342.37, New Coins: 110.24193082
+[Agent] Received reward: 0.35740722
+[NeuralNetworkInterface] Received reward signal: 0.35740722
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.73519325 H=28.81317328 L=28.29431323 C=28.40228466 V=33725100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.88397663 HD @ 28.40. New Cash: 3175.25, New Coins: 116.12590745
+[Agent] Received reward: 0.36774006
+[NeuralNetworkInterface] Received reward signal: 0.36774006
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.96013260 H=28.97812812 L=28.46226621 C=28.54624417 V=28618200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.80629537 HD @ 28.55. New Cash: 3341.00, New Coins: 110.31961208
+[Agent] Received reward: -0.39486195
+[NeuralNetworkInterface] Received reward signal: -0.39486195
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.84316254 H=29.16707506 L=28.71419749 C=28.91214137 V=34195200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.13708305 H=29.28704346 L=28.79217858 C=28.79217858 V=26852100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.51598060 HD @ 28.79. New Cash: 3499.81, New Coins: 104.80363148
+[Agent] Received reward: -0.39885417
+[NeuralNetworkInterface] Received reward signal: -0.39885417
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.13408661 H=29.26605149 L=29.01411760 C=29.19406940 V=21368700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.99404999 HD @ 29.19. New Cash: 3324.82, New Coins: 110.79768147
+[Agent] Received reward: -0.38020409
+[NeuralNetworkInterface] Received reward signal: -0.38020409
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.33202362 H=29.38901000 L=28.82516299 C=28.94213214 V=28217400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.26005554 H=29.74292461 L=29.17607757 C=29.24206002 V=31094100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.74592209 H=29.83589628 L=29.09209729 C=29.39501451 V=32211300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.67394066 H=29.89287992 L=29.39801500 C=29.63495322 V=44776800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.60963180 HD @ 29.63. New Cash: 3158.58, New Coins: 116.40731327
+[Agent] Received reward: 0.37479363
+[NeuralNetworkInterface] Received reward signal: 0.37479363
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.93186188 H=30.51070459 L=29.71891890 C=29.84488411 V=38118300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.82036566 HD @ 29.84. New Cash: 3332.29, New Coins: 110.58694760
+[Agent] Received reward: -0.37462128
+[NeuralNetworkInterface] Received reward signal: -0.37462128
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.71765327 H=30.77163984 L=30.00984541 C=30.05483250 V=38125500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.54368500 HD @ 30.05. New Cash: 3165.68, New Coins: 116.13063260
+[Agent] Received reward: 0.42963331
+[NeuralNetworkInterface] Received reward signal: 0.42963331
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.07583046 H=30.73865129 L=30.02784354 C=30.73865129 V=37064700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: -0.10500000
+[NeuralNetworkInterface] Received reward signal: -0.10500000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.16580772 H=30.34275627 L=29.90787760 C=29.97985627 V=23205300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.80653163 HD @ 29.98. New Cash: 3339.75, New Coins: 110.32410097
+[Agent] Received reward: -0.38221257
+[NeuralNetworkInterface] Received reward signal: -0.38221257
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.39373970 H=30.46272196 L=30.08482630 C=30.25577861 V=21909600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.51920178 HD @ 30.26. New Cash: 3172.77, New Coins: 115.84330275
+[Agent] Received reward: 0.36075503
+[NeuralNetworkInterface] Received reward signal: 0.36075503
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.86461067 H=30.94258897 L=30.18079462 C=30.34875052 V=22850400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.99057388 H=31.02356510 L=30.60667862 C=30.75363917 V=19106100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.28749466 H=31.33248174 L=30.90659579 C=31.08954738 V=26017800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.10262687 HD @ 31.09. New Cash: 3014.13, New Coins: 120.94592961
+[Agent] Received reward: 0.37262192
+[NeuralNetworkInterface] Received reward signal: 0.37262192
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.45544434 H=31.56941366 L=31.20051413 C=31.29049172 V=17884200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.81636540 HD @ 31.29. New Cash: 2863.42, New Coins: 125.76229502
+[Agent] Received reward: 0.37247786
+[NeuralNetworkInterface] Received reward signal: 0.37247786
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.65940285 H=31.76137291 L=31.43446394 C=31.49144691 V=25351200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.54634936 HD @ 31.49. New Cash: 2720.25, New Coins: 130.30864438
+[Agent] Received reward: 0.36666611
+[NeuralNetworkInterface] Received reward signal: 0.36666611
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.15253258 H=31.85434073 L=31.08655014 C=31.64140117 V=26829300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.29856323 HD @ 31.64. New Cash: 2584.24, New Coins: 134.60720761
+[Agent] Received reward: -0.41071048
+[NeuralNetworkInterface] Received reward signal: -0.41071048
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.87361145 H=31.23651488 L=30.75364587 C=31.09255412 V=23870100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.45072937 H=30.93659478 L=30.29476931 C=30.89160769 V=31445700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.85388947 H=30.83162333 L=29.57796383 C=30.68766258 V=48247800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.21054993 HD @ 30.69. New Cash: 2455.03, New Coins: 138.81775754
+[Agent] Received reward: -0.46972284
+[NeuralNetworkInterface] Received reward signal: -0.46972284
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.29903603 H=29.81789603 L=29.06810094 C=29.63794424 V=42705600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.94088788 HD @ 29.64. New Cash: 2660.74, New Coins: 131.87686966
+[Agent] Received reward: 0.38116784
+[NeuralNetworkInterface] Received reward signal: 0.38116784
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.02610779 H=29.46698945 L=28.92113793 C=29.37401545 V=27643200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.59384348 HD @ 29.37. New Cash: 2854.43, New Coins: 125.28302618
+[Agent] Received reward: 0.45577931
+[NeuralNetworkInterface] Received reward signal: 0.45577931
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.24032211 H=28.55223701 L=28.07236794 C=28.48625458 V=37861800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.01018495 HD @ 28.49. New Cash: 2711.71, New Coins: 130.29321113
+[Agent] Received reward: -0.37284645
+[NeuralNetworkInterface] Received reward signal: -0.37284645
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.24332428 H=28.46826315 L=27.98539419 C=28.30030895 V=28052700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.52224731 H=28.65721028 L=28.23132603 C=28.23132603 V=14670000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.80265552 HD @ 28.23. New Cash: 2576.12, New Coins: 135.09586666
+[Agent] Received reward: 0.40800540
+[NeuralNetworkInterface] Received reward signal: 0.40800540
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.53724670 H=28.81317233 L=28.41427959 C=28.69920297 V=30103800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.48814092 HD @ 28.70. New Cash: 2447.32, New Coins: 139.58400757
+[Agent] Received reward: -0.37560333
+[NeuralNetworkInterface] Received reward signal: -0.37560333
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.50425720 H=28.65421589 L=28.31530764 C=28.48926150 V=27126900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.29515394 HD @ 28.49. New Cash: 2324.95, New Coins: 143.87916151
+[Agent] Received reward: 0.36694872
+[NeuralNetworkInterface] Received reward signal: 0.36694872
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.23005676 H=29.27804368 L=28.50725153 C=28.62722053 V=30212400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 7.19395808 HD @ 28.63. New Cash: 2530.89, New Coins: 136.68520344
+[Agent] Received reward: -0.40756857
+[NeuralNetworkInterface] Received reward signal: -0.40756857
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.17906380 H=29.34102002 L=29.01410775 C=29.09808569 V=18723900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.28704453 H=29.52098291 L=29.11309237 C=29.21206603 V=31992000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.83426017 HD @ 29.21. New Cash: 2730.54, New Coins: 129.85094327
+[Agent] Received reward: -0.37227885
+[NeuralNetworkInterface] Received reward signal: -0.37227885
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.61695480 H=29.86888526 L=29.29304225 C=29.39801213 V=27246300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.64408169 HD @ 29.40. New Cash: 2594.01, New Coins: 134.49502496
+[Agent] Received reward: 0.35821275
+[NeuralNetworkInterface] Received reward signal: 0.35821275
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.73519325 H=29.67993762 L=28.67521046 C=29.46699460 V=31278900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.40154936 HD @ 29.47. New Cash: 2464.31, New Coins: 138.89657432
+[Agent] Received reward: -0.44945823
+[NeuralNetworkInterface] Received reward signal: -0.44945823
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.57837677 H=28.77137185 L=28.07477916 C=28.62964173 V=31101600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.30377058 HD @ 28.63. New Cash: 2341.09, New Coins: 143.20034490
+[Agent] Received reward: -0.36621951
+[NeuralNetworkInterface] Received reward signal: -0.36621951
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.10193062 H=28.68694675 L=27.87878040 C=28.49696779 V=25489500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 7.16001724 HD @ 28.50. New Cash: 2545.13, New Coins: 136.04032765
+[Agent] Received reward: 0.38481585
+[NeuralNetworkInterface] Received reward signal: 0.38481585
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.32808876 H=28.42157184 L=27.84560102 C=28.21349749 V=21830700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.51048575 HD @ 28.21. New Cash: 2417.87, New Coins: 140.55081340
+[Agent] Received reward: 0.37581283
+[NeuralNetworkInterface] Received reward signal: 0.37581283
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.30095100 H=28.49394785 L=28.12001722 C=28.42157468 V=19357500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.25359083 HD @ 28.42. New Cash: 2296.98, New Coins: 144.80440423
+[Agent] Received reward: 0.35185627
+[NeuralNetworkInterface] Received reward signal: 0.35185627
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.07779884 H=28.43664847 L=28.06272132 C=28.43664847 V=28917600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 7.24022021 HD @ 28.44. New Cash: 2502.87, New Coins: 137.56418402
+[Agent] Received reward: 0.38897120
+[NeuralNetworkInterface] Received reward signal: 0.38897120
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.03256798 H=28.24968748 L=27.87274239 C=28.12001695 V=24126900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.87820920 HD @ 28.12. New Cash: 2696.28, New Coins: 130.68597482
+[Agent] Received reward: 0.39504009
+[NeuralNetworkInterface] Received reward signal: 0.39504009
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.69784164 H=27.91194496 L=27.61340542 C=27.75815176 V=34480800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.53429874 HD @ 27.76. New Cash: 2877.66, New Coins: 124.15167608
+[Agent] Received reward: 0.38155916
+[NeuralNetworkInterface] Received reward signal: 0.38155916
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.37215805 H=27.74608691 L=27.18820982 C=27.50785924 V=27005400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.23062196 HD @ 27.51. New Cash: 2733.78, New Coins: 129.38229804
+[Agent] Received reward: -0.36611432
+[NeuralNetworkInterface] Received reward signal: -0.36611432
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.46564674 H=27.51992619 L=27.22440110 C=27.38121051 V=28820100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.99207483 HD @ 27.38. New Cash: 2597.09, New Coins: 134.37437287
+[Agent] Received reward: 0.36888789
+[NeuralNetworkInterface] Received reward signal: 0.36888789
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.30582237 H=28.04463341 L=27.21535547 C=27.52897430 V=36694500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.31972504 H=27.17312699 L=25.97595302 C=27.17312699 V=49121400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: -0.10500000
+[NeuralNetworkInterface] Received reward signal: -0.10500000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=26.27450371 H=26.98014348 L=26.17498994 C=26.19609986 V=44764500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=25.87946320 H=26.40718529 L=25.86740014 C=26.09658270 V=18330900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.71871864 HD @ 26.10. New Cash: 2772.43, New Coins: 127.65565423
+[Agent] Received reward: 0.35485346
+[NeuralNetworkInterface] Received reward signal: 0.35485346
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.26359940 H=27.26661387 L=26.02420707 C=26.06039452 V=30084900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: -0.10500000
+[NeuralNetworkInterface] Received reward signal: -0.10500000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.61943626 H=27.62546693 L=26.66953652 C=27.06457533 V=29644500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.12187527 HD @ 27.06. New Cash: 2633.81, New Coins: 132.77752950
+[Agent] Received reward: 0.44047365
+[NeuralNetworkInterface] Received reward signal: 0.44047365
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=27.78227615 H=28.18636184 L=27.63752981 C=27.76418416 V=29622000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.74317234 HD @ 27.76. New Cash: 2502.12, New Coins: 137.52070184
+[Agent] Received reward: 0.37280840
+[NeuralNetworkInterface] Received reward signal: 0.37280840
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.08986092 H=28.16223408 L=27.81846198 C=27.94511459 V=21017400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.14715958 H=28.24064267 L=27.63451670 C=27.63451670 V=24458100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.00241280 H=28.56028998 L=27.95416401 C=28.10795722 V=24831900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.87603509 HD @ 28.11. New Cash: 2695.39, New Coins: 130.64466674
+[Agent] Received reward: -0.35000033
+[NeuralNetworkInterface] Received reward signal: -0.35000033
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.17731857 H=28.24365936 L=27.95115217 C=28.10795986 V=24087300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.50902557 H=28.69900623 L=28.09891092 C=28.23159594 V=23369100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.70805359 H=28.87692433 L=28.31904713 C=28.66583547 V=21602700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.61456871 H=28.99151209 L=28.57838299 C=28.86184500 V=18816900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.63568306 H=28.64171373 L=28.08082200 C=28.31000288 V=28188900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.53223334 HD @ 28.31. New Cash: 2880.31, New Coins: 124.11243341
+[Agent] Received reward: -0.39138168
+[NeuralNetworkInterface] Received reward signal: -0.39138168
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.59948730 H=28.73518676 L=28.51203662 C=28.64472161 V=16183800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.63266754 H=28.78344630 L=28.43062552 C=28.49093737 V=21255300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.02468491 H=29.13023106 L=28.76233280 C=28.78947338 V=21174600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.00237483 HD @ 28.79. New Cash: 2736.30, New Coins: 129.11480823
+[Agent] Received reward: 0.36686403
+[NeuralNetworkInterface] Received reward signal: 0.36686403
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.05484390 H=29.20863539 L=28.89803277 C=28.92818955 V=16230000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.17244530 H=29.31417544 L=28.99754390 C=29.04579268 V=16843500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.47098351 H=29.61271363 L=29.20561352 C=29.23576857 V=18361800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.67971108 HD @ 29.24. New Cash: 2599.48, New Coins: 133.79451931
+[Agent] Received reward: 0.35721994
+[NeuralNetworkInterface] Received reward signal: 0.35721994
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.39860725 H=29.68207095 L=29.18450225 C=29.29607732 V=24189600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.76650620 H=29.95950475 L=29.41067104 C=29.81475842 V=25037400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.35939144 HD @ 29.81. New Cash: 2469.51, New Coins: 138.15391075
+[Agent] Received reward: -0.37371782
+[NeuralNetworkInterface] Received reward signal: -0.37371782
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.66096687 H=29.69112193 L=29.07896530 C=29.61271809 V=22829100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.16967777 HD @ 29.61. New Cash: 2346.03, New Coins: 142.32358852
+[Agent] Received reward: 0.36960328
+[NeuralNetworkInterface] Received reward signal: 0.36960328
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.23275948 H=29.82682589 L=29.17546555 C=29.77857710 V=21654600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: -0.10500000
+[NeuralNetworkInterface] Received reward signal: -0.10500000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.26894569 H=29.27196189 L=28.97342405 C=29.10912181 V=17627400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 7.11617943 HD @ 29.11. New Cash: 2553.18, New Coins: 135.20740910
+[Agent] Received reward: -0.35870142
+[NeuralNetworkInterface] Received reward signal: -0.35870142
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.16339684 H=29.29909457 L=29.10308328 C=29.18149056 V=15760200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.76037045 HD @ 29.18. New Cash: 2750.46, New Coins: 128.44703864
+[Agent] Received reward: 0.35325529
+[NeuralNetworkInterface] Received reward signal: 0.35325529
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.58742714 H=29.19053683 L=28.42458709 C=29.15434939 V=35547900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.42235193 HD @ 29.15. New Cash: 2937.70, New Coins: 122.02468671
+[Agent] Received reward: 0.42421320
+[NeuralNetworkInterface] Received reward signal: 0.42421320
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.89803314 H=29.21165196 L=28.53616726 C=28.53616726 V=44169000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.30397034 H=28.94929826 L=28.07780394 C=28.92517387 V=37775700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.10123434 HD @ 28.93. New Cash: 3114.18, New Coins: 115.92345238
+[Agent] Received reward: 0.42516783
+[NeuralNetworkInterface] Received reward signal: 0.42516783
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.57837677 H=28.57837677 L=28.15016851 C=28.30396168 V=21805800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.82867050 H=28.93119872 L=28.65376740 C=28.72312609 V=18299700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.79617262 HD @ 28.72. New Cash: 3280.66, New Coins: 110.12727976
+[Agent] Received reward: -0.35661444
+[NeuralNetworkInterface] Received reward signal: -0.35661444
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.84073448 H=28.95231129 L=28.71408187 C=28.77740817 V=12794700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.16942596 H=29.19656827 L=28.64773804 C=28.68090756 V=21030300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.71924149 HD @ 28.68. New Cash: 3116.63, New Coins: 115.84652125
+[Agent] Received reward: 0.39526405
+[NeuralNetworkInterface] Received reward signal: 0.39526405
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=28.82264328 H=29.15736855 L=28.68995827 C=29.05182585 V=18507600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.79232606 HD @ 29.05. New Cash: 3284.91, New Coins: 110.05419518
+[Agent] Received reward: 0.37506747
+[NeuralNetworkInterface] Received reward signal: 0.37506747
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.00960732 H=29.05484335 L=28.84073658 C=28.84375277 V=16628400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.69430990 HD @ 28.84. New Cash: 3120.66, New Coins: 115.74850509
+[Agent] Received reward: 0.39281224
+[NeuralNetworkInterface] Received reward signal: 0.39281224
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.24180412 H=29.30211423 L=29.10007398 C=29.19657154 V=17643900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.34422350 HD @ 29.20. New Cash: 2964.63, New Coins: 121.09272859
+[Agent] Received reward: 0.36735248
+[NeuralNetworkInterface] Received reward signal: 0.36735248
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.53431892 H=29.55241265 L=29.27799745 C=29.34132377 V=16375500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.70921898 H=29.91427546 L=29.25688617 C=29.45591371 V=21602400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.15249634 H=30.15550908 L=29.81173875 C=29.84792274 V=28443000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: -0.10500000
+[NeuralNetworkInterface] Received reward signal: -0.10500000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.81893158 H=31.41601056 L=30.77973139 C=30.87321274 V=62091900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.80129343 HD @ 30.87. New Cash: 2816.40, New Coins: 125.89402202
+[Agent] Received reward: -0.36948574
+[NeuralNetworkInterface] Received reward signal: -0.36948574
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.11932564 H=30.86115446 L=29.74841295 C=30.70133061 V=52895400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: -0.10500000
+[NeuralNetworkInterface] Received reward signal: -0.10500000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.97156715 H=30.13139101 L=29.82682082 C=30.05298718 V=19239600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.29470110 HD @ 30.05. New Cash: 3005.57, New Coins: 119.59932092
+[Agent] Received reward: -0.35561993
+[NeuralNetworkInterface] Received reward signal: -0.35561993
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.01982307 H=30.20376964 L=29.89618318 C=30.10124312 V=24260700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.99243549 HD @ 30.10. New Cash: 2855.29, New Coins: 124.59175641
+[Agent] Received reward: 0.36051851
+[NeuralNetworkInterface] Received reward signal: 0.36051851
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.89015198 H=30.19472222 L=29.86904206 C=30.19170602 V=27705000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.22958782 HD @ 30.19. New Cash: 3043.37, New Coins: 118.36216859
+[Agent] Received reward: 0.38845438
+[NeuralNetworkInterface] Received reward signal: 0.38845438
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.76047707 H=29.87205214 L=29.51320080 C=29.85999081 V=25464300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.91810843 HD @ 29.86. New Cash: 3220.09, New Coins: 112.44406016
+[Agent] Received reward: 0.38181196
+[NeuralNetworkInterface] Received reward signal: 0.38181196
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.58557320 H=29.67000596 L=29.42876210 C=29.58858939 V=23706900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.62220301 HD @ 29.59. New Cash: 3386.44, New Coins: 106.82185715
+[Agent] Received reward: 0.35035577
+[NeuralNetworkInterface] Received reward signal: 0.35035577
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.85094833 H=29.99569469 L=29.48305178 C=29.58558174 V=34127700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.53129768 H=30.02283408 L=29.28703758 C=29.99569177 V=31057500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.64487961 HD @ 30.00. New Cash: 3217.12, New Coins: 112.46673676
+[Agent] Received reward: -0.39750139
+[NeuralNetworkInterface] Received reward signal: -0.39750139
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.50717545 H=29.73032563 L=29.36242910 C=29.58859548 V=23051400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.62333684 HD @ 29.59. New Cash: 3383.51, New Coins: 106.84339992
+[Agent] Received reward: -0.35035608
+[NeuralNetworkInterface] Received reward signal: -0.35035608
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.65493202 H=29.91125344 L=29.57954439 C=29.59160572 V=18357900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.71700296 HD @ 29.59. New Cash: 3214.33, New Coins: 112.56040288
+[Agent] Received reward: 0.35499503
+[NeuralNetworkInterface] Received reward signal: 0.35499503
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.63082123 H=29.85397148 L=29.51019751 C=29.63383742 V=14089800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.38655090 H=29.61271728 L=29.32322460 C=29.46495474 V=18379800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.45449786 HD @ 29.46. New Cash: 3053.61, New Coins: 118.01490074
+[Agent] Received reward: -0.35573091
+[NeuralNetworkInterface] Received reward signal: -0.35573091
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.42877007 H=29.67906258 L=29.25085246 C=29.41670873 V=16977000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.19027153 HD @ 29.42. New Cash: 2900.93, New Coins: 123.20517227
+[Agent] Received reward: 0.36758063
+[NeuralNetworkInterface] Received reward signal: 0.36758063
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.69715500 H=29.72731006 L=29.49812748 C=29.56446998 V=16035900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.90611436 HD @ 29.56. New Cash: 2755.89, New Coins: 128.11128663
+[Agent] Received reward: 0.36749231
+[NeuralNetworkInterface] Received reward signal: 0.36749231
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.66397858 H=29.77555365 L=29.56748103 C=29.71222735 V=15211500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.63763068 HD @ 29.71. New Cash: 2618.09, New Coins: 132.74891731
+[Agent] Received reward: 0.35603998
+[NeuralNetworkInterface] Received reward signal: 0.35603998
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.86301231 H=29.95951334 L=29.67001715 C=29.76350199 V=16446900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.77812386 H=29.84179091 L=29.58711921 C=29.83572606 V=14777400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.83875465 H=29.86603954 L=29.59014784 C=29.79630764 V=43800000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.63744587 HD @ 29.80. New Cash: 2815.86, New Coins: 126.11147144
+[Agent] Received reward: -0.35071167
+[NeuralNetworkInterface] Received reward signal: -0.35071167
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.21468925 H=30.24803899 L=29.79024003 C=29.80236626 V=17310300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.27228928 H=30.46632280 L=30.18739874 C=30.31473628 V=16243200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.90546036 H=30.18135212 L=29.87514304 C=30.07523804 V=18969300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.03278732 H=30.05400736 L=29.74173697 C=29.78721294 V=19653000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.79631424 H=30.17528767 L=29.69323605 C=29.88726967 V=20124300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.30557357 HD @ 29.89. New Cash: 3004.32, New Coins: 119.80589787
+[Agent] Received reward: 0.37769394
+[NeuralNetworkInterface] Received reward signal: 0.37769394
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.76296043 H=29.89939182 L=29.59924416 C=29.65078498 V=16222200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.99029489 HD @ 29.65. New Cash: 3181.94, New Coins: 113.81560298
+[Agent] Received reward: -0.37004101
+[NeuralNetworkInterface] Received reward signal: -0.37004101
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.80843925 H=29.96912310 L=29.72051627 C=29.82056549 V=14837700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.47191048 H=29.97215659 L=28.80189018 C=29.75386706 V=25413600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.69078015 HD @ 29.75. New Cash: 3351.26, New Coins: 108.12482283
+[Agent] Received reward: 0.36961511
+[NeuralNetworkInterface] Received reward signal: 0.36961511
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.44765663 H=29.67200753 L=29.26574928 C=29.58711697 V=24162900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.40624114 HD @ 29.59. New Cash: 3511.21, New Coins: 102.71858169
+[Agent] Received reward: 0.35000046
+[NeuralNetworkInterface] Received reward signal: 0.35000046
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.56892204 H=29.61136905 L=29.42036792 C=29.58711312 V=22319700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.93368961 HD @ 29.59. New Cash: 3335.65, New Coins: 108.65227129
+[Agent] Received reward: 0.36362827
+[NeuralNetworkInterface] Received reward signal: 0.36362827
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.65684319 H=29.82055942 L=29.57801749 C=29.70231915 V=25517400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.43261356 HD @ 29.70. New Cash: 3497.02, New Coins: 103.21965773
+[Agent] Received reward: 0.35750138
+[NeuralNetworkInterface] Received reward signal: 0.35750138
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.39005280 H=29.80540835 L=29.37792656 C=29.63865964 V=18822000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.46584511 H=29.52951216 L=29.34457239 C=29.44462160 V=17062500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.74476242 H=29.79629976 L=29.48099702 C=29.48402944 V=12078900.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.16098289 HD @ 29.48. New Cash: 3649.18, New Coins: 98.05867484
+[Agent] Received reward: -0.38599032
+[NeuralNetworkInterface] Received reward signal: -0.38599032
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.96305466 H=30.07523009 L=29.75992729 C=29.78721217 V=13968000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 6.12541707 HD @ 29.79. New Cash: 3466.72, New Coins: 104.18409191
+[Agent] Received reward: 0.35712439
+[NeuralNetworkInterface] Received reward signal: 0.35712439
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.08432579 H=30.09038717 L=29.79024304 C=29.84784523 V=16267200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=29.92060852 H=30.08432476 L=29.75689228 C=29.95395825 V=13102500.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.78675251 HD @ 29.95. New Cash: 3293.39, New Coins: 109.97084442
+[Agent] Received reward: -0.36027294
+[NeuralNetworkInterface] Received reward signal: -0.36027294
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.19650459 H=30.23288676 L=29.86300722 C=29.86603964 V=12273300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.56031418 H=30.56941145 L=30.15708839 C=30.22682029 V=16820700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.44778890 HD @ 30.23. New Cash: 3128.72, New Coins: 115.41863332
+[Agent] Received reward: 0.39563763
+[NeuralNetworkInterface] Received reward signal: 0.39563763
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.79073524 H=30.93019906 L=30.62095758 C=30.62095758 V=15486000.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.10878436 HD @ 30.62. New Cash: 2972.28, New Coins: 120.52741768
+[Agent] Received reward: 0.36039543
+[NeuralNetworkInterface] Received reward signal: 0.36039543
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.05449677 H=31.20002195 L=30.69977936 C=30.71190559 V=15335700.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 6.02637088 HD @ 30.71. New Cash: 3157.36, New Coins: 114.50104679
+[Agent] Received reward: -0.40493596
+[NeuralNetworkInterface] Received reward signal: -0.40493596
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.20608902 H=31.34554936 L=31.08784872 C=31.19395932 V=14485200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.27581978 H=31.34858411 L=31.04843643 C=31.22731138 V=11187600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.72505234 HD @ 31.23. New Cash: 3336.14, New Coins: 108.77599445
+[Agent] Received reward: -0.35373666
+[NeuralNetworkInterface] Received reward signal: -0.35373666
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.28187370 H=31.46984239 L=31.19395074 C=31.26065020 V=11183400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.33600680 HD @ 31.26. New Cash: 3169.33, New Coins: 114.11200125
+[Agent] Received reward: -0.36120155
+[NeuralNetworkInterface] Received reward signal: -0.36120155
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.03630066 H=31.39101801 L=30.97566604 C=31.16060231 V=15238200.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.08548225 HD @ 31.16. New Cash: 3010.87, New Coins: 119.19748350
+[Agent] Received reward: -0.35851210
+[NeuralNetworkInterface] Received reward signal: -0.35851210
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.24853516 H=31.31523464 L=30.90594392 C=31.08481887 V=15152400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.95987417 HD @ 31.08. New Cash: 3196.13, New Coins: 113.23760932
+[Agent] Received reward: -0.37082281
+[NeuralNetworkInterface] Received reward signal: -0.37082281
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.38799095 H=31.48501121 L=31.25459547 C=31.26975413 V=14093400.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.38496780 H=31.57596899 L=31.17577553 C=31.30007723 V=11883300.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.10562433 HD @ 31.30. New Cash: 3036.32, New Coins: 118.34323365
+[Agent] Received reward: -0.44458616
+[NeuralNetworkInterface] Received reward signal: -0.44458616
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.78163719 H=31.02721158 L=30.21469513 C=30.45420467 V=24323100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: SELL
+[Portfolio] Logged Trade: SELL 5.91716168 HD @ 30.45. New Cash: 3216.52, New Coins: 112.42607197
+[Agent] Received reward: -0.39982615
+[NeuralNetworkInterface] Received reward signal: -0.39982615
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.79073524 H=30.92413421 L=30.55425810 C=30.88775204 V=19139100.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: HOLD
+[Agent] Received reward: 0.07000000
+[NeuralNetworkInterface] Received reward signal: 0.07000000
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=31.17880058 H=31.20305652 L=30.75738367 C=30.85440046 V=18400800.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 5.21242462 HD @ 30.85. New Cash: 3055.70, New Coins: 117.63849659
+[Agent] Received reward: 0.38439131
+[NeuralNetworkInterface] Received reward signal: 0.38439131
+[Agent] Making decision using full OHLCV data
+[Agent] Price data: O=30.73009682 H=31.16970478 L=30.70584089 C=31.15757855 V=16011600.00000000
+[Agent_Features] Generated 18 features for the latest tick.
+[Agent] Exploration: Random action: BUY
+[Portfolio] Logged Trade: BUY 4.90361998 HD @ 31.16. New Cash: 2902.91, New Coins: 122.54211658
+[Agent] Received reward: 0.00000000
+[NeuralNetworkInterface] Received reward signal: 0.00000000
+[Simulation] Simulation run finished. Ticks processed in this run: 217
+
+Simulation Finished in 0.03 seconds.
+--------------------
+  Final Portfolio  
+--------------------
+Cash:      $2902.91
+Asset:     122.5421 WMT
+Total Value: $6721.03
+--------------------
+Saving agent state to prefix: training_run_20250621_154302/temp_model_state/temp_agent_state
+AutonomousTradingAgent::saveState called with prefix: training_run_20250621_154302/temp_model_state/temp_agent_state
+[NeuralNetworkInterface] State saved successfully to training_run_20250621_154302/temp_model_state/temp_agent_state_nn_state.json_nn_state.json
+[Portfolio] State saved to training_run_20250621_154302/temp_model_state/temp_agent_state_portfolio_state.json
+AutonomousTradingAgent full state saved with prefix: training_run_20250621_154302/temp_model_state/temp_agent_state
+Agent state saved successfully.
+[Simulation] Simulation destroyed.
+[AutonomousTradingAgent] Agent destroyed
+[NeuralNetworkInterface] Destructor called.
+[Portfolio] Destroyed for asset: HD. Final cash: 2902.91, Final assets: 122.54

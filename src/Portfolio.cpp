@@ -1,112 +1,148 @@
-#include "Portfolio.h" // Correct include path
+#include <NeuroGen/Portfolio.h>
+#include <stdexcept>
 #include <iostream>
-#include <iomanip> 
-#include <stdexcept> 
-#include <fstream> // Required for file operations
-#include <nlohmann/json.hpp> // For JSON serialization
+#include <iomanip>
+#include <fstream>
+#include <nlohmann/json.hpp>
 
-// Private helper method to update the initial value of the portfolio
-void Portfolio::_updateInitialValue(double initial_cash_for_value, double initial_coins_for_value, double price_for_initial_coins) {
-    if (initial_coins_for_value > 0 && price_for_initial_coins > 0) {
-        initial_value_ = initial_cash_for_value + (initial_coins_for_value * price_for_initial_coins);
-    } else {
-        // If no initial coins or no price for them, initial value is just the cash
-        initial_value_ = initial_cash_for_value;
+namespace NeuroGen {
+
+// Corrected constructor to match header declaration
+Portfolio::Portfolio(const std::string& asset_symbol, double initial_cash)
+    : asset_symbol_(asset_symbol),
+      cash_balance_(initial_cash),
+      coin_balance_(0.0),
+      initial_cash_(initial_cash),
+      initial_portfolio_value_(initial_cash),
+      trade_count_(0) {
+    if (initial_cash < 0) {
+        std::cerr << "[Portfolio] Warning: Initial cash is negative. Setting to 0." << std::endl;
+        initial_cash_ = 0.0;
+        cash_balance_ = 0.0;
+        initial_portfolio_value_ = 0.0;
     }
-    // std::cout << "[Portfolio] Initial portfolio value set to: $" << std::fixed << std::setprecision(2) << initial_value_ << std::endl;
+
+    // Open log file
+    std::string log_filename = "portfolio_" + asset_symbol_ + "_tradelog.csv";
+    trade_log_file_.open(log_filename, std::ios::out | std::ios::app);
+    if (!trade_log_file_.is_open()) {
+        std::cerr << "[Portfolio] Warning: Could not open trade log file: " << log_filename << std::endl;
+    } else {
+        // Write header if the file is new/empty
+        trade_log_file_.seekp(0, std::ios::end);
+        if (trade_log_file_.tellp() == 0) {
+            trade_log_file_ << "Timestamp,Type,Quantity,Price,Fee,TotalCost,CashBalance,CoinBalance" << std::endl;
+        }
+    }
+
+    std::cout << "[Portfolio] Initialized for asset: " << asset_symbol_ 
+              << " with initial cash: " << std::fixed << std::setprecision(2) << initial_cash_
+              << ". Initial Portfolio Value: " << initial_portfolio_value_ << std::endl;
 }
 
-Portfolio::Portfolio(double initial_cash, double initial_coins)
-    : cash_balance_(initial_cash), coin_balance_(initial_coins) {
-    if (initial_cash < 0) {
-        // std::cerr << "[Portfolio] Warning: Initial cash is negative. Setting to 0." << std::endl;
-        cash_balance_ = 0.0;
+Portfolio::~Portfolio() {
+    if (trade_log_file_.is_open()) {
+        trade_log_file_.close();
     }
-    if (initial_coins < 0) {
-        // std::cerr << "[Portfolio] Warning: Initial coins is negative. Setting to 0." << std::endl;
-        coin_balance_ = 0.0;
-    }
-    // To accurately set initial_value_ if initial_coins > 0, we'd need an initial price.
-    // For now, if initial_coins are passed, their value isn't part of initial_value_ unless a mechanism to pass their price is added.
-    // The _updateInitialValue method expects a price. Let's assume 0 if not provided, meaning initial_value_ will be initial_cash.
-    _updateInitialValue(cash_balance_, coin_balance_, 0.0); 
-    std::cout << "[Portfolio] Initialized. Cash: $" << std::fixed << std::setprecision(2) << cash_balance_
-              << ", Coins: " << std::fixed << std::setprecision(8) << coin_balance_ 
-              << ". Initial Portfolio Value: $" << std::fixed << std::setprecision(2) << initial_value_ << std::endl;
+    std::cout << "[Portfolio] Destroyed for asset: " << asset_symbol_ << ". Final cash: " 
+              << std::fixed << std::setprecision(2) << cash_balance_ 
+              << ", Final assets: " << coin_balance_ << std::endl;
 }
 
 bool Portfolio::executeBuy(double quantity, double price) {
-    if (quantity <= 0.0) {
-        std::cerr << "[Portfolio] Buy Error: Quantity must be positive. Attempted: " << quantity << std::endl;
-        return false;
-    }
-    if (price <= 0.0) {
-        std::cerr << "[Portfolio] Buy Error: Price must be positive. Attempted: " << price << std::endl;
+    if (quantity <= 0 || price <= 0) {
+        std::cerr << "[Portfolio] Buy Error: Quantity and price must be positive." << std::endl;
         return false;
     }
 
-    double cost = quantity * price;
+    double total_cost = quantity * price;
+    // Assuming a simple fee structure for now
+    double fee = 0.0; // No fee for this example, can be changed
 
-    if (cost > cash_balance_) {
-        std::cout << "[Portfolio] Insufficient funds for buy. Cost: $" << std::fixed << std::setprecision(2) << cost
-                  << ", Available Cash: $" << std::fixed << std::setprecision(2) << cash_balance_ << ". Order rejected." << std::endl;
-        // Optional: Implement partial buy if desired, for now, reject.
-        // If partial buy:
-        // quantity = cash_balance_ / price; // buy max possible
-        // cost = quantity * price;
-        // if (quantity <= 1e-8) { // Check for very small or zero quantity
-        //     std::cout << "[Portfolio] Cannot buy any coins with available cash." << std::endl;
-        //     return false;
-        // }
-        // std::cout << "[Portfolio] Adjusting buy quantity to " << std::fixed << std::setprecision(8) << quantity << " due to insufficient funds." << std::endl;
-        return false; // Reject if cannot afford the full requested quantity
+    if (cash_balance_ < total_cost + fee) {
+        std::cerr << "[Portfolio] Insufficient cash to BUY " << quantity << " " << asset_symbol_
+                  << " (Required: " << std::fixed << std::setprecision(2) << (total_cost + fee)
+                  << ", Available: " << cash_balance_ << "). Trade rejected." << std::endl;
+        return false;
     }
 
-    cash_balance_ -= cost;
+    cash_balance_ -= (total_cost + fee);
     coin_balance_ += quantity;
+    trade_count_++;
 
-    std::cout << "[Portfolio] BUY: " << std::fixed << std::setprecision(8) << quantity
-              << " coins @ $" << std::fixed << std::setprecision(2) << price
-              << " (Cost: $" << std::fixed << std::setprecision(2) << cost << ")" << std::endl;
-    std::cout << "[Portfolio] New Balance -> Cash: $" << std::fixed << std::setprecision(2) << cash_balance_
-              << ", Coins: " << std::fixed << std::setprecision(8) << coin_balance_ << std::endl;
+    TradeRecord record = {
+        std::chrono::system_clock::now(),
+        TradeType::BUY,
+        quantity,
+        price,
+        fee,
+        total_cost
+    };
+    _logTrade(record);
     return true;
 }
 
 bool Portfolio::executeSell(double quantity, double price) {
-    if (quantity <= 0.0) {
-        std::cerr << "[Portfolio] Sell Error: Quantity must be positive. Attempted: " << quantity << std::endl;
+    if (quantity <= 0 || price <= 0) {
+        std::cerr << "[Portfolio] Sell Error: Quantity and price must be positive." << std::endl;
         return false;
     }
-    if (price <= 0.0) {
-        std::cerr << "[Portfolio] Sell Error: Price must be positive. Attempted: " << price << std::endl;
+    
+    if (coin_balance_ < quantity) {
+        std::cerr << "[Portfolio] Insufficient assets to SELL " << quantity << " " << asset_symbol_
+                  << " (Required: " << quantity 
+                  << ", Available: " << coin_balance_ << "). Trade rejected." << std::endl;
         return false;
     }
 
-    if (quantity > coin_balance_) {
-        std::cout << "[Portfolio] Insufficient coins for sell. Requested: " << std::fixed << std::setprecision(8) << quantity
-                  << ", Available Coins: " << std::fixed << std::setprecision(8) << coin_balance_ << ". Order rejected." << std::endl;
-        // Optional: Implement partial sell if desired, for now, reject.
-        // If partial sell:
-        // quantity = coin_balance_; // sell all available
-        // if (quantity <= 1e-8) { // Check for very small or zero quantity
-        //     std::cout << "[Portfolio] No coins to sell." << std::endl;
-        //     return false;
-        // }
-        // std::cout << "[Portfolio] Adjusting sell quantity to " << std::fixed << std::setprecision(8) << quantity << " due to insufficient coins." << std::endl;
-        return false; // Reject if cannot sell the full requested quantity
-    }
+    double total_value = quantity * price;
+    double fee = 0.0; // No fee for this example
 
-    double revenue = quantity * price;
-    cash_balance_ += revenue;
+    cash_balance_ += (total_value - fee);
     coin_balance_ -= quantity;
+    trade_count_++;
 
-    std::cout << "[Portfolio] SELL: " << std::fixed << std::setprecision(8) << quantity
-              << " coins @ $" << std::fixed << std::setprecision(2) << price
-              << " (Revenue: $" << std::fixed << std::setprecision(2) << revenue << ")" << std::endl;
-    std::cout << "[Portfolio] New Balance -> Cash: $" << std::fixed << std::setprecision(2) << cash_balance_
-              << ", Coins: " << std::fixed << std::setprecision(8) << coin_balance_ << std::endl;
+    TradeRecord record = {
+        std::chrono::system_clock::now(),
+        TradeType::SELL,
+        quantity,
+        price,
+        fee,
+        total_value
+    };
+    _logTrade(record);
     return true;
+}
+
+void Portfolio::_logTrade(const TradeRecord& record) {
+    trade_history_.push_back(record);
+    
+    if (trade_log_file_.is_open()) {
+        std::time_t time_now = std::chrono::system_clock::to_time_t(record.timestamp);
+        std::tm tm_now = *std::gmtime(&time_now);
+        trade_log_file_ << std::put_time(&tm_now, "%Y-%m-%dT%H:%M:%SZ") << ","
+                        << (record.type == TradeType::BUY ? "BUY" : "SELL") << ","
+                        << std::fixed << std::setprecision(8) << record.quantity << ","
+                        << std::setprecision(2) << record.price << ","
+                        << std::setprecision(4) << record.fee << ","
+                        << std::setprecision(2) << record.total_cost << ","
+                        << cash_balance_ << ","
+                        << std::setprecision(8) << coin_balance_ << std::endl;
+    }
+
+    std::cout << std::fixed << std::setprecision(2)
+              << "[Portfolio] Logged Trade: " << (record.type == TradeType::BUY ? "BUY" : "SELL")
+              << " " << std::setprecision(8) << record.quantity << " " << asset_symbol_ 
+              << " @ " << std::setprecision(2) << record.price
+              << ". New Cash: " << cash_balance_ << ", New Coins: " << std::setprecision(8) << coin_balance_ << std::endl;
+}
+
+double Portfolio::getCurrentValue(double current_asset_price) const {
+    if (current_asset_price < 0) {
+        std::cerr << "[Portfolio] Warning: current_asset_price is negative. Using 0 for asset value calculation." << std::endl;
+        return cash_balance_;
+    }
+    return cash_balance_ + (coin_balance_ * current_asset_price);
 }
 
 double Portfolio::getCashBalance() const {
@@ -117,38 +153,41 @@ double Portfolio::getCoinBalance() const {
     return coin_balance_;
 }
 
-double Portfolio::getCurrentValue(double current_price) const {
-    if (current_price < 0.0) {
-        std::cerr << "[Portfolio] Warning: Current price is negative (" << current_price << ") for calculating current value. Using 0.0." << std::endl;
-        current_price = 0.0;
-    }
-    return cash_balance_ + (coin_balance_ * current_price);
+const std::string& Portfolio::getAssetSymbol() const {
+    return asset_symbol_;
 }
 
-double Portfolio::getProfitAndLoss(double current_price) const {
-    if (current_price < 0.0) {
-        // Match behavior of getCurrentValue for negative price
-        current_price = 0.0; 
-    }
-    double current_total_value = getCurrentValue(current_price);
-    return current_total_value - initial_value_;
+int Portfolio::getTradeCount() const {
+    return trade_count_;
 }
 
-void Portfolio::reset(double new_initial_cash, double new_initial_coins) {
+double Portfolio::getInitialCash() const {
+    return initial_cash_;
+}
+
+double Portfolio::getInitialPortfolioValue() const {
+    return initial_portfolio_value_;
+}
+
+const std::vector<Portfolio::TradeRecord>& Portfolio::getTradeHistory() const {
+    return trade_history_;
+}
+
+void Portfolio::reset(double new_initial_cash) {
     if (new_initial_cash < 0) {
-        // std::cerr << "[Portfolio] Warning: Reset initial cash is negative. Setting to 0." << std::endl;
+        std::cerr << "[Portfolio] Warning: Reset initial cash is negative. Setting to 0." << std::endl;
         new_initial_cash = 0.0;
     }
-    if (new_initial_coins < 0) {
-        // std::cerr << "[Portfolio] Warning: Reset initial coins is negative. Setting to 0." << std::endl;
-        new_initial_coins = 0.0;
-    }
-    cash_balance_ = new_initial_cash;
-    coin_balance_ = new_initial_coins;
-    _updateInitialValue(cash_balance_, coin_balance_, 0.0); 
-    std::cout << "[Portfolio] Reset. Cash: $" << std::fixed << std::setprecision(2) << cash_balance_
-              << ", Coins: " << std::fixed << std::setprecision(8) << coin_balance_
-              << ". New Initial Portfolio Value: $" << std::fixed << std::setprecision(2) << initial_value_ << std::endl;
+    initial_cash_ = new_initial_cash;
+    cash_balance_ = initial_cash_;
+    coin_balance_ = 0.0;
+    trade_count_ = 0;
+    trade_history_.clear();
+    initial_portfolio_value_ = initial_cash_;
+    
+    std::cout << "[Portfolio] Reset for asset: " << asset_symbol_ 
+              << " with initial cash: " << std::fixed << std::setprecision(2) << initial_cash_ 
+              << ". New Initial Portfolio Value: " << initial_portfolio_value_ << std::endl;
 }
 
 bool Portfolio::saveState(const std::string& filename) const {
@@ -159,11 +198,14 @@ bool Portfolio::saveState(const std::string& filename) const {
     }
 
     nlohmann::json j;
+    j["asset_symbol"] = asset_symbol_;
+    j["initial_cash"] = initial_cash_;
     j["cash_balance"] = cash_balance_;
     j["coin_balance"] = coin_balance_;
-    j["initial_value"] = initial_value_;
-
-    state_file << j.dump(4); // Dump with an indent of 4 for readability
+    j["initial_portfolio_value"] = initial_portfolio_value_;
+    j["trade_count"] = trade_count_;
+    
+    state_file << j.dump(4); 
     state_file.close();
 
     std::cout << "[Portfolio] State saved to " << filename << std::endl;
@@ -180,9 +222,12 @@ bool Portfolio::loadState(const std::string& filename) {
     nlohmann::json j;
     try {
         state_file >> j;
+        asset_symbol_ = j.at("asset_symbol").get<std::string>();
+        initial_cash_ = j.at("initial_cash").get<double>();
         cash_balance_ = j.at("cash_balance").get<double>();
         coin_balance_ = j.at("coin_balance").get<double>();
-        initial_value_ = j.at("initial_value").get<double>();
+        initial_portfolio_value_ = j.at("initial_portfolio_value").get<double>();
+        trade_count_ = j.at("trade_count").get<int>();
     } catch (const nlohmann::json::exception& e) {
         std::cerr << "[Portfolio] Error: Failed to parse portfolio state file " << filename << ". Error: " << e.what() << std::endl;
         state_file.close();
@@ -191,8 +236,11 @@ bool Portfolio::loadState(const std::string& filename) {
 
     state_file.close();
     std::cout << "[Portfolio] State loaded from " << filename << std::endl;
-    std::cout << "[Portfolio] Loaded Balance -> Cash: $" << std::fixed << std::setprecision(2) << cash_balance_
-              << ", Coins: " << std::fixed << std::setprecision(8) << coin_balance_ 
-              << ". Initial Portfolio Value: $" << std::fixed << std::setprecision(2) << initial_value_ << std::endl;
+    std::cout << "[Portfolio] Loaded State -> Asset: " << asset_symbol_
+              << ", Cash: " << std::fixed << std::setprecision(2) << cash_balance_
+              << ", Coins: " << std::setprecision(8) << coin_balance_ 
+              << ". Initial Portfolio Value: " << initial_portfolio_value_ << std::endl;
     return true;
 }
+
+} // namespace NeuroGen
